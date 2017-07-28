@@ -1,32 +1,39 @@
+/*! @bluemango/slp 1.0.0 */
+
 window.lemonpi = window.lemonpi || [];
 
 (function () {
   let result;
   let errors;
-  const fields = ['type', 'advertiserId', 'dynamicInputId', 'id', 'available', 'category', 'title',
-    'clickUrl', 'imageUrl', 'expiresOn', 'description', 'priceNormal', 'priceDiscount', 'logoUrl',
-    'stickerText', 'custom1', 'custom2', 'custom3', 'custom4'];
+  const fieldProperties = {
+    booleans: ['available'],
+    numbers: ['advertiserId', 'dynamicInputId'],
+    strings: ['category', 'clickUrl', 'custom1', 'custom2', 'custom3', 'custom4', 'description',
+      'expiresOn', 'id', 'imageUrl', 'logoUrl', 'priceDiscount', 'priceNormal', 'stickerText',
+      'title', 'type'],
+    required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'id',
+      'imageUrl', 'title', 'type'],
+  };
+  const fields = fieldProperties.booleans.concat(fieldProperties.numbers, fieldProperties.strings);
 
-  // const log = (type, message) => {
-  //   if (/lemonpi_debug/.test(location.href)) {
-  //     console[type](message);
-  //   }
-  // };
-
-  const pathArray = location.pathname
+  // Returns an array of URL path values, e.g. "/foo/bar" > ['foo', 'bar']
+  const urlPath = location.pathname
     .split('/')
     .filter(dir => dir)
     .map(dir => decodeURI(dir));
 
-  const queryObject = location.search
+  // Returns an object of query parameters, e.g. "?foo=bar" > { foo: 'bar' }
+  const urlQuery = location.search
     .replace(/^\?/, '')
     .split('&')
     .filter(parameter => parameter)
     .reduce((queries, parameter) =>
-      Object.assign(queries, { [parameter.split('=')[0]]: parameter.split('=')[1] }), {});
+      Object.assign(queries, {
+        [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+      }), {});
 
   const text = (selector) => {
-    const element = document.querySelector(selector);
+    const element = window.top.document.querySelector(selector);
     return (element && element.textContent && element.textContent.trim())
       ? element.textContent.trim()
       : undefined;
@@ -58,25 +65,54 @@ window.lemonpi = window.lemonpi || [];
         }
       });
     }
+
+    // TODO: add elements test?
   };
 
   const handleObject = (obj) => {
     switch (obj.type) {
-      case 'text':
-        return text(obj.selector);
+      case 'urlPath':
+        return urlPath[obj.index];
 
-      case 'pathArray':
-        return pathArray[obj.index];
+      case 'urlQuery':
+        return urlQuery[obj.key];
 
-      case 'queryObject':
-        return queryObject[obj.key];
+      case 'image': {
+        const element = window.top.document.querySelector(obj.selector);
+        return (element && element.src)
+          ? element.src
+          : undefined;
+      }
+
+      case 'backgroundImage': {
+        const element = window.top.document.querySelector(obj.selector);
+
+        if (element) {
+          return window.getComputedStyle(element).getPropertyValue('background-image')
+            .replace(/url\(['"]?|['"]?\)/g, '');
+        }
+
+        return undefined;
+      }
+
+      case 'text': {
+        const string = text(obj.selector);
+
+        if (!string && !obj.optional) {
+          errors.push(`The element "${obj.selector}" doesn't contain text`);
+        }
+
+        return string;
+      }
 
       case 'url': {
         let url = `${location.protocol}//${location.host}${location.pathname}`;
 
         if (obj.queryParameters && obj.queryParameters.length) {
           url += obj.queryParameters.reduce((newUrl, parameter, index) => {
-            return `${newUrl}${(index > 0 ? '&' : '?')}${parameter}=${queryObject[parameter]}`;
+            const key = encodeURI(parameter);
+            const value = encodeURI(urlQuery[parameter]);
+            return `${newUrl}${(index > 0 ? '&' : '?')}${key}=${value}`;
           });
         }
 
@@ -84,7 +120,7 @@ window.lemonpi = window.lemonpi || [];
           const parameters = Object.keys(obj.customQueryParameters);
 
           parameters.forEach((parameter, index) => {
-            url += `${url}${(index > 0 ? '&' : '?')}${parameter}=${queryObject[parameter]}`;
+            url += `${url}${(index > 0 ? '&' : '?')}${parameter}=${urlQuery[parameter]}`;
             // TODO
           });
         }
@@ -101,57 +137,94 @@ window.lemonpi = window.lemonpi || [];
     }
   };
 
-  const handleField = (key, value) => {
+  const handleValue = (key, value) => {
     let newValue = value;
 
-    if (typeof value === 'object') {
-      newValue = handleObject(value);
+    if (typeof newValue === 'function') {
+      newValue = newValue();
+    } else if (typeof newValue === 'object') {
+      newValue = handleObject(newValue);
     }
 
     switch (typeof newValue) {
       case 'boolean':
-        if (key === 'available') {
-          result.available = value;
+        if (!fieldProperties.booleans.includes(key)) {
+          errors.push(`"${key}" doesn't allow boolean values`);
         }
         break;
 
       case 'number':
-        if (['advertiserId', 'dynamicInputId'].includes(key)) {
-          result[key] = value;
+        if (!fieldProperties.numbers.includes(key)) {
+          errors.push(`"${key}" doesn't allow number values`);
         }
         break;
 
       case 'string':
+        newValue = newValue.trim();
+
+        if (!fieldProperties.strings.includes(key)) {
+          errors.push(`"${key}" doesn't allow string values`);
+        }
         break;
 
       default:
         break;
     }
+
+    result[key] = newValue;
   };
 
   const push = (obj) => {
     result = {};
     errors = [];
 
-    for (const key of Object.keys(obj)) {
-      if (key === 'test') {
-        handleTest(obj.test);
-      } else if (fields.includes(key)) {
-        handleField(key, obj[key]);
-      }
+    // Make sure all the test object prerequisites are met
+    if (obj.test) {
+      handleTest(obj.test);
     }
 
-    if (errors.length === 0) {
+    if (!errors.length) {
+      // Add result values for valid fields
+      Object.keys(obj).forEach((key) => {
+        if (fields.includes(key)) {
+          handleValue(key, obj[key]);
+        }
+      });
+    }
+
+    // Remove empty fields
+    Object.keys(result).forEach((field) => {
+      if (result[field] === undefined || result[field] === '') {
+        delete result[field];
+
+        // Check for required fields
+        if (fieldProperties.required.contains(field)) {
+          errors.push(`"${field}" is required and can't be empty`);
+        }
+      }
+    });
+
+    // No errors found; return and push the result object to LemonPI
+    if (!errors.length) {
+      // TODO: uncomment
       // window.lemonpi.push(result);
+      console.log(result);
       return result;
     }
 
-    return null;
+    // If there are errors and "lemonpi_debug" is found in the URL, log them to the console
+    if (/lemonpi_debug/.test(location.href)) {
+      errors.forEach((error) => {
+        console.error(error);
+      });
+    }
+
+    return false;
   };
 
-  window.SLP = {
-    pathArray,
-    queryObject,
+  window.slp = {
+    urlPath,
+    urlQuery,
     text,
     push,
   };
