@@ -3,8 +3,6 @@
 window.lemonpi = window.lemonpi || [];
 
 (function () {
-  let result;
-  let errors;
   const fieldProperties = {
     booleans: ['available'],
     numbers: ['advertiserId', 'dynamicInputId'],
@@ -15,131 +13,156 @@ window.lemonpi = window.lemonpi || [];
       'title', 'type'],
   };
   const fields = fieldProperties.booleans.concat(fieldProperties.numbers, fieldProperties.strings);
+  let result;
+  let errors;
+  let lastScrapedId;
 
-  const testGlobalVariable = (variableString) => {
-    try {
-      if (typeof eval(`window.${variableString}`) !== 'undefined') {
-        return true;
-      }
-    } catch (e) {} // eslint-disable-line no-empty
-
-    return false;
+  // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+  const hashString = (string) => {
+    let hash = 0;
+    let chr;
+    if (string.length === 0) return hash;
+    for (let i = 0; i < string.length; i += 1) {
+      chr = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr; // eslint-disable-line no-bitwise
+      hash |= 0; // eslint-disable-line no-bitwise
+    }
+    return hash.toString();
   };
 
-  // Returns an array of URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
-  const urlPath = location.pathname
-    .split('/')
-    .filter(dir => dir)
-    .map(dir => decodeURI(dir));
+  // Returns URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
+  const getUrlPath = (index) => {
+    const urlPath = location.pathname
+      .split('/')
+      .filter(dir => dir)
+      .map(dir => decodeURI(dir));
 
-  // Returns an object of query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
-  const urlQuery = location.search
-    .replace(/^\?/, '')
-    .split('&')
-    .filter(parameter => parameter)
-    .reduce((queries, parameter) =>
-      Object.assign(queries, {
-        [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-      }), {});
+    if (typeof index === 'number') {
+      return urlPath[index];
+    }
 
-  const text = (selector, optional) => {
-    const required = optional !== undefined ? !optional : true;
+    return urlPath;
+  };
+
+  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
+  const getUrlQuery = (key) => {
+    const parameters = location.search
+      .replace(/^\?/, '')
+      .split('&')
+      .filter(v => v)
+      .reduce((queries, parameter) =>
+        Object.assign(queries, {
+          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+        }), {});
+
+    if (typeof key === 'string') {
+      return parameters[key];
+    }
+
+    return parameters;
+  };
+
+  // Returns trimmed text content from an element selector
+  const getText = (selector) => {
     const element = window.top.document.querySelector(selector);
-    const textContent = (element && element.textContent && element.textContent.trim())
+    return (element && element.textContent && element.textContent.trim())
       ? element.textContent.trim()
       : undefined;
-
-    if (!textContent && required) {
-      errors.push(`The element "${selector}" is missing or empty`);
-    }
-
-    return textContent;
   };
 
-  const handleTest = (test) => {
-    if (test.url && test.url.test) {
-      if (!test.url.test(location.href)) {
-        errors.push('The URL doesn\'t match the requirements');
-      }
+  const handleConfig = (config) => {
+    if (config.testUrl && config.testUrl.test && !config.testUrl.test(location.href)) {
+      errors.push(`The URL doesn't meet the requirements of "${config.testUrl.toString()}"`);
     }
   };
 
-  const handleObject = (obj) => {
-    switch (obj.type) {
-      case 'urlPath':
-        return urlPath[obj.index];
+  // Evals, wraps and returns the callback result in a try-catch
+  const handleFunction = (func) => {
+    let funcResult;
 
-      case 'urlQuery':
-        return urlQuery[obj.key];
+    try {
+      funcResult = func();
+    } catch (e) {} // eslint-disable-line no-empty
 
-      case 'image': {
-        const element = window.top.document.querySelector(obj.selector);
-        return (element && element.src)
-          ? element.src
-          : undefined;
-      }
-
-      case 'backgroundImage': {
-        const element = window.top.document.querySelector(obj.selector);
-
-        if (element) {
-          return window.getComputedStyle(element).getPropertyValue('background-image')
-            .replace(/url\(['"]?|['"]?\)/g, '');
-        }
-
-        return undefined;
-      }
-
-      case 'text': {
-        const string = text(obj.selector);
-
-        if (!string && !obj.optional) {
-          errors.push(`The element "${obj.selector}" doesn't contain text`);
-        }
-
-        return string;
-      }
-
-      case 'url': {
-        let url = `${location.protocol}//${location.host}${location.pathname}`;
-
-        if (obj.queryParameters && obj.queryParameters.length) {
-          url += obj.queryParameters.reduce((newUrl, parameter, index) => {
-            const key = encodeURI(parameter);
-            const value = encodeURI(urlQuery[parameter]);
-            return `${newUrl}${(index > 0 ? '&' : '?')}${key}=${value}`;
-          });
-        }
-
-        if (obj.customQueryParameters) {
-          const parameters = Object.keys(obj.customQueryParameters);
-
-          parameters.forEach((parameter, index) => {
-            url += `${url}${(index > 0 ? '&' : '?')}${parameter}=${urlQuery[parameter]}`;
-            // TODO
-          });
-        }
-
-        if (obj.hash) {
-          url += location.hash;
-        }
-
-        return url;
-      }
-
-      default:
-        return undefined;
-    }
+    return funcResult;
   };
+
+  // const handleObject = (obj) => {
+  //   switch (obj.type) {
+  //     case 'urlPath':
+  //       return urlPath[obj.index];
+  //
+  //     case 'urlQuery':
+  //       return urlQuery[obj.key];
+  //
+  //     case 'image': {
+  //       const element = window.top.document.querySelector(obj.selector);
+  //       return (element && element.src)
+  //         ? element.src
+  //         : undefined;
+  //     }
+  //
+  //     case 'backgroundImage': {
+  //       const element = window.top.document.querySelector(obj.selector);
+  //
+  //       if (element) {
+  //         return window.getComputedStyle(element).getPropertyValue('background-image')
+  //           .replace(/url\(['"]?|['"]?\)/g, '');
+  //       }
+  //
+  //       return undefined;
+  //     }
+  //
+  //     case 'text': {
+  //       const string = text(obj.selector);
+  //
+  //       if (!string && !obj.optional) {
+  //         errors.push(`The element "${obj.selector}" doesn't contain text`);
+  //       }
+  //
+  //       return string;
+  //     }
+  //
+  //     case 'url': {
+  //       let url = `${location.protocol}//${location.host}${location.pathname}`;
+  //
+  //       if (obj.queryParameters && obj.queryParameters.length) {
+  //         url += obj.queryParameters.reduce((newUrl, parameter, index) => {
+  //           const key = encodeURI(parameter);
+  //           const value = encodeURI(urlQuery[parameter]);
+  //           return `${newUrl}${(index > 0 ? '&' : '?')}${key}=${value}`;
+  //         });
+  //       }
+  //
+  //       if (obj.customQueryParameters) {
+  //         const parameters = Object.keys(obj.customQueryParameters);
+  //
+  //         parameters.forEach((parameter, index) => {
+  //           url += `${url}${(index > 0 ? '&' : '?')}${parameter}=${urlQuery[parameter]}`;
+  //           // TODO
+  //         });
+  //       }
+  //
+  //       if (obj.hash) {
+  //         url += location.hash;
+  //       }
+  //
+  //       return url;
+  //     }
+  //
+  //     default:
+  //       return undefined;
+  //   }
+  // };
 
   const handleValue = (key, value) => {
     let newValue = value;
 
     if (typeof newValue === 'function') {
-      newValue = newValue();
-    } else if (typeof newValue === 'object') {
-      newValue = handleObject(newValue);
-    }
+      newValue = handleFunction(newValue);
+    }// else if (typeof newValue === 'object') {
+    //   newValue = handleObject(newValue);
+    // }
 
     switch (typeof newValue) {
       case 'boolean':
@@ -169,13 +192,13 @@ window.lemonpi = window.lemonpi || [];
     result[key] = newValue;
   };
 
-  const push = (obj) => {
+  const scrape = (obj) => {
     result = {};
     errors = [];
 
-    // Make sure all the test object prerequisites are met
-    if (obj.test) {
-      handleTest(obj.test);
+    // Make sure all the config prerequisites are met
+    if (obj.config) {
+      handleConfig(obj.config);
     }
 
     if (!errors.length) {
@@ -187,9 +210,14 @@ window.lemonpi = window.lemonpi || [];
       });
     }
 
+    // Generate a unique ID based the result values
+    if (!result.id) {
+      result.id = hashString(JSON.stringify(result));
+    }
+
     // Remove empty fields
     Object.keys(result).forEach((field) => {
-      if (result[field] === undefined || result[field] === '') {
+      if ([undefined, ''].contains(result[field])) {
         delete result[field];
 
         // Check for required fields
@@ -200,17 +228,22 @@ window.lemonpi = window.lemonpi || [];
     });
 
     // No errors found; return and push the result object to LemonPI
-    if (!errors.length) {
+    if (!errors.length && result.id !== lastScrapedId) {
+      lastScrapedId = result.id;
       // TODO: uncomment
       // window.lemonpi.push(result);
-      console.log(result);
+      console.log(result); // Debug
       return result;
     }
 
     // If there are errors and "lemonpi_debug" is found in the URL, log them to the console
     if (/lemonpi_debug/.test(location.href)) {
       errors.forEach((error) => {
-        console.error(error);
+        console.log(
+          `%cSLP%c ${error}`,
+          'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
+          'color: red'
+        );
       });
     }
 
@@ -218,9 +251,9 @@ window.lemonpi = window.lemonpi || [];
   };
 
   window.slp = {
-    urlPath,
-    urlQuery,
-    text,
-    push,
+    getUrlPath,
+    getUrlQuery,
+    getText,
+    scrape,
   };
 }());
