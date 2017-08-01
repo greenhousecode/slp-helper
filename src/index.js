@@ -1,4 +1,4 @@
-/*! @bluemango/slp 1.0.0 */
+/*! @bluemango/slp-helper - v1.0.0 - 2017-08-01 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -11,18 +11,28 @@ window.lemonpi = window.lemonpi || [];
     strings: ['category', 'clickUrl', 'custom1', 'custom2', 'custom3', 'custom4', 'description',
       'expiresOn', 'id', 'imageUrl', 'logoUrl', 'priceDiscount', 'priceNormal', 'stickerText',
       'title', 'type'],
-    required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'id',
-      'imageUrl', 'title', 'type'],
+    required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'imageUrl',
+      'title', 'type'],
   };
   const fields = fieldProperties.booleans.concat(fieldProperties.numbers, fieldProperties.strings);
 
-  // Returns an array of URL path values, e.g. "/foo/bar" > ['foo', 'bar']
+  const testGlobalVariable = (variableString) => {
+    try {
+      if (typeof eval(`window.${variableString}`) !== 'undefined') {
+        return true;
+      }
+    } catch (e) {} // eslint-disable-line no-empty
+
+    return false;
+  };
+
+  // Returns an array of URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
   const urlPath = location.pathname
     .split('/')
     .filter(dir => dir)
     .map(dir => decodeURI(dir));
 
-  // Returns an object of query parameters, e.g. "?foo=bar" > { foo: 'bar' }
+  // Returns an object of query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
   const urlQuery = location.search
     .replace(/^\?/, '')
     .split('&')
@@ -32,41 +42,26 @@ window.lemonpi = window.lemonpi || [];
         [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
       }), {});
 
-  const text = (selector) => {
+  const text = (selector, optional) => {
+    const required = optional !== undefined ? !optional : true;
     const element = window.top.document.querySelector(selector);
-    return (element && element.textContent && element.textContent.trim())
+    const textContent = (element && element.textContent && element.textContent.trim())
       ? element.textContent.trim()
       : undefined;
-  };
 
-  const testUrl = regex => regex.test(`${location.protocol}//${location.host}${location.pathname}`);
+    if (!textContent && required) {
+      errors.push(`The element "${selector}" is missing or empty`);
+    }
 
-  const testGlobalVariable = (variable) => {
-    try {
-      if (typeof eval(variable) !== 'undefined') {
-        return true;
-      }
-    } catch (e) {} // eslint-disable-line no-empty
-
-    return false;
+    return textContent;
   };
 
   const handleTest = (test) => {
-    if (test.url) {
-      if (!testUrl(test.url)) {
+    if (test.url && test.url.test) {
+      if (!test.url.test(location.href)) {
         errors.push('The URL doesn\'t match the requirements');
       }
     }
-
-    if (test.variables && test.variables.length) {
-      test.variables.forEach((variable) => {
-        if (!testGlobalVariable(variable)) {
-          errors.push(`The variable "${variable}" doesn't exist`);
-        }
-      });
-    }
-
-    // TODO: add elements test?
   };
 
   const handleObject = (obj) => {
