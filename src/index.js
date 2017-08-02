@@ -3,7 +3,7 @@
 window.lemonpi = window.lemonpi || [];
 
 (function () {
-  const fieldProperties = {
+  const fieldTypes = {
     booleans: ['available'],
     numbers: ['advertiserId', 'dynamicInputId'],
     strings: ['category', 'clickUrl', 'custom1', 'custom2', 'custom3', 'custom4', 'description',
@@ -12,9 +12,18 @@ window.lemonpi = window.lemonpi || [];
     required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'imageUrl',
       'title', 'type'],
   };
-  const fields = fieldProperties.booleans.concat(fieldProperties.numbers, fieldProperties.strings);
+  const fieldNames = fieldTypes.booleans
+    .concat(fieldTypes.numbers, fieldTypes.strings);
+  const config = {
+    optionalFields: [],
+    scrapeOnce: false,
+    testUrl: /./,
+    timeout: 500,
+    debug: /lemonpi_debug/.test(location.href),
+  };
   let result;
   let errors;
+  let errorFieldNames = [];
   let lastScrapedId;
 
   // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
@@ -70,142 +79,133 @@ window.lemonpi = window.lemonpi || [];
       : undefined;
   };
 
-  const handleConfig = (config) => {
+  // Merges and tests configuration
+  const handleConfig = (userConfig) => {
+    Object.assign(config, userConfig);
+
     if (config.testUrl && config.testUrl.test && !config.testUrl.test(location.href)) {
-      errors.push(`The URL doesn't meet the requirements of "${config.testUrl.toString()}"`);
+      errors.push(`The URL doesn't meet the requirements of '${config.testUrl.toString()}'`);
     }
   };
 
   // Evals, wraps and returns the callback result in a try-catch
-  const handleFunction = (func) => {
+  const handleFunction = (fieldName, func) => {
     let funcResult;
 
     try {
       funcResult = func();
-    } catch (e) {} // eslint-disable-line no-empty
+    } catch (e) {
+      if (!errorFieldNames.includes(fieldName)) {
+        errors.push(`Something went wrong in the '${fieldName}' function: ${e.message}`);
+        errorFieldNames.push(fieldName);
+      }
+    }
 
     return funcResult;
   };
 
-  // const handleObject = (obj) => {
-  //   switch (obj.type) {
-  //     case 'urlPath':
-  //       return urlPath[obj.index];
-  //
-  //     case 'urlQuery':
-  //       return urlQuery[obj.key];
-  //
-  //     case 'image': {
-  //       const element = window.top.document.querySelector(obj.selector);
-  //       return (element && element.src)
-  //         ? element.src
-  //         : undefined;
-  //     }
-  //
-  //     case 'backgroundImage': {
-  //       const element = window.top.document.querySelector(obj.selector);
-  //
-  //       if (element) {
-  //         return window.getComputedStyle(element).getPropertyValue('background-image')
-  //           .replace(/url\(['"]?|['"]?\)/g, '');
-  //       }
-  //
-  //       return undefined;
-  //     }
-  //
-  //     case 'text': {
-  //       const string = text(obj.selector);
-  //
-  //       if (!string && !obj.optional) {
-  //         errors.push(`The element "${obj.selector}" doesn't contain text`);
-  //       }
-  //
-  //       return string;
-  //     }
-  //
-  //     case 'url': {
-  //       let url = `${location.protocol}//${location.host}${location.pathname}`;
-  //
-  //       if (obj.queryParameters && obj.queryParameters.length) {
-  //         url += obj.queryParameters.reduce((newUrl, parameter, index) => {
-  //           const key = encodeURI(parameter);
-  //           const value = encodeURI(urlQuery[parameter]);
-  //           return `${newUrl}${(index > 0 ? '&' : '?')}${key}=${value}`;
-  //         });
-  //       }
-  //
-  //       if (obj.customQueryParameters) {
-  //         const parameters = Object.keys(obj.customQueryParameters);
-  //
-  //         parameters.forEach((parameter, index) => {
-  //           url += `${url}${(index > 0 ? '&' : '?')}${parameter}=${urlQuery[parameter]}`;
-  //           // TODO
-  //         });
-  //       }
-  //
-  //       if (obj.hash) {
-  //         url += location.hash;
-  //       }
-  //
-  //       return url;
-  //     }
-  //
-  //     default:
-  //       return undefined;
-  //   }
-  // };
+  // Parses and returns shorthand objects
+  const handleObject = (obj) => {
+    let objResult;
 
-  const handleValue = (key, value) => {
-    let newValue = value;
+    switch (obj.type) {
+      case 'url': {
+        let url = `${location.protocol}//${location.host}${location.pathname}`;
 
-    if (typeof newValue === 'function') {
-      newValue = handleFunction(newValue);
-    }// else if (typeof newValue === 'object') {
-    //   newValue = handleObject(newValue);
-    // }
-
-    switch (typeof newValue) {
-      case 'boolean':
-        if (!fieldProperties.booleans.includes(key)) {
-          errors.push(`"${key}" doesn't allow boolean values`);
+        if (obj.allowedParameters && obj.allowedParameters.length) {
+          url += obj.allowedParameters.reduce((newUrl, parameter, index) => {
+            const separator = index === 0 ? '?' : '&';
+            const key = encodeURI(parameter);
+            const value = encodeURI(getUrlQuery(parameter));
+            return `${newUrl}${separator}${key}=${value}`;
+          });
         }
-        break;
 
-      case 'number':
-        if (!fieldProperties.numbers.includes(key)) {
-          errors.push(`"${key}" doesn't allow number values`);
+        if (obj.customParameters) {
+          const parameters = Object.keys(obj.customParameters);
+          parameters.forEach((parameter, index) => {
+            const separator = !obj.allowedParameters.length && index === 0 ? '?' : '&';
+            const key = encodeURI(parameter);
+            const value = encodeURI(obj.customParameters[parameter]);
+            url += `${url}${separator}${key}=${value}`;
+          });
         }
-        break;
 
-      case 'string':
-        newValue = newValue.trim();
-
-        if (!fieldProperties.strings.includes(key)) {
-          errors.push(`"${key}" doesn't allow string values`);
+        if (obj.hash) {
+          url += location.hash;
         }
+
+        objResult = url;
         break;
+      }
 
       default:
         break;
     }
 
-    result[key] = newValue;
+    return objResult;
   };
 
-  const scrape = (obj) => {
+  // Checks, sanitizes and returns allowed values for allowed fields
+  const getValue = (fieldName, fieldValue) => {
+    let value = fieldValue;
+
+    if (typeof value === 'function') {
+      value = handleFunction(fieldName, value);
+    } else if (typeof value === 'object' && value !== null && value.type) {
+      value = handleObject(value);
+    }
+
+    switch (typeof value) {
+      case 'boolean':
+        if (!fieldTypes.booleans.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' doesn't expect a boolean value`);
+          errorFieldNames.push(fieldName);
+        }
+        break;
+
+      case 'number':
+        if (!fieldTypes.numbers.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' doesn't expect a number value`);
+          errorFieldNames.push(fieldName);
+        }
+        break;
+
+      case 'string':
+        value = value.trim();
+
+        if (!fieldTypes.strings.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' doesn't expect a string value`);
+          errorFieldNames.push(fieldName);
+        }
+        break;
+
+      default:
+        if (!errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' can't be of type ${typeof value}`);
+          errorFieldNames.push(fieldName);
+        }
+        break;
+    }
+
+    return value;
+  };
+
+  // Main scrape action
+  const scrape = (input, cb) => {
     result = {};
     errors = [];
+    errorFieldNames = [];
 
-    // Make sure all the config prerequisites are met
-    if (obj.config) {
-      handleConfig(obj.config);
+    if (input.config) {
+      handleConfig(input.config);
     }
 
     if (!errors.length) {
       // Add result values for valid fields
-      Object.keys(obj).forEach((key) => {
-        if (fields.includes(key)) {
-          handleValue(key, obj[key]);
+      Object.keys(input).forEach((fieldName) => {
+        if (fieldNames.includes(fieldName)) {
+          result[fieldName] = getValue(fieldName, input[fieldName]);
         }
       });
     }
@@ -216,38 +216,67 @@ window.lemonpi = window.lemonpi || [];
     }
 
     // Remove empty fields
-    Object.keys(result).forEach((field) => {
-      if ([undefined, ''].contains(result[field])) {
-        delete result[field];
+    Object.keys(result).forEach((fieldName) => {
+      if (result[fieldName] === undefined || result[fieldName] === '') {
+        delete result[fieldName];
 
-        // Check for required fields
-        if (fieldProperties.required.contains(field)) {
-          errors.push(`"${field}" is required and can't be empty`);
+        if (!config.optionalFields.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' is empty`);
+          errorFieldNames.push(fieldName);
         }
       }
     });
 
-    // No errors found; return and push the result object to LemonPI
-    if (!errors.length && result.id !== lastScrapedId) {
-      lastScrapedId = result.id;
-      // TODO: uncomment
-      // window.lemonpi.push(result);
-      console.log(result); // Debug
-      return result;
-    }
-
-    // If there are errors and "lemonpi_debug" is found in the URL, log them to the console
-    if (/lemonpi_debug/.test(location.href)) {
-      errors.forEach((error) => {
-        console.log(
-          `%cSLP%c ${error}`,
-          'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-          'color: red'
-        );
+    if (!errors.length) {
+      // Check for missing required fields
+      fieldTypes.required.forEach((fieldName) => {
+        if (!Object.keys(result).includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' is required and missing`);
+          errorFieldNames.push(fieldName);
+        }
       });
     }
 
-    return false;
+    // Only perform actions when there's new data to be scraped
+    if (result.id !== lastScrapedId) {
+      lastScrapedId = result.id;
+
+      // No errors found; push the result object to LemonPI
+      if (!errors.length) {
+        // window.lemonpi.push(result);
+        console.log(result);
+
+        // Execute callback with the result object
+        if (cb) {
+          cb(result);
+        }
+
+        if (config.debug) {
+          console.log(
+            '%cSLP%c Push successful!',
+            'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
+            'color: green'
+          );
+        }
+
+        if (config.scrapeOnce) {
+          return;
+        }
+      } else if (config.debug) {
+        errors.forEach((error) => {
+          console.log(
+            `%cSLP%c ${error}`,
+            'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
+            'color: red'
+          );
+        });
+      }
+    }
+
+    // Monitor any changes by calling itself again
+    setTimeout(() => {
+      scrape(input);
+    }, config.timeout);
   };
 
   window.slp = {
