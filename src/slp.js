@@ -49,6 +49,38 @@ window.lemonpi = window.lemonpi || [];
     );
   };
 
+  // Returns URL path segments, e.g. "example.com/foo/bar" > ['foo', 'bar']
+  const getUrlPathSegment = (index) => {
+    const urlPath = window.top.location.pathname
+      .split('/')
+      .filter(segment => segment)
+      .map(segment => decodeURI(segment));
+
+    if (typeof index === 'number') {
+      return urlPath[index];
+    }
+
+    return urlPath;
+  };
+
+  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
+  const getUrlQueryParameter = (key) => {
+    const parameters = window.top.location.search
+      .replace(/^\?/, '')
+      .split('&')
+      .filter(parameter => parameter)
+      .reduce((queries, parameter) =>
+        Object.assign(queries, {
+          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+        }), {});
+
+    if (typeof key === 'string') {
+      return parameters[key];
+    }
+
+    return parameters;
+  };
+
   // Merges and tests configuration
   const handleConfig = (userConfig) => {
     Object.assign(config, userConfig);
@@ -105,38 +137,6 @@ window.lemonpi = window.lemonpi || [];
     }
 
     return url;
-  };
-
-  // Returns URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
-  const getUrlPathSegment = (index) => {
-    const urlPath = window.top.location.pathname
-      .split('/')
-      .filter(dir => dir)
-      .map(dir => decodeURI(dir));
-
-    if (typeof index === 'number') {
-      return urlPath[index];
-    }
-
-    return urlPath;
-  };
-
-  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
-  const getUrlQueryParameter = (key) => {
-    const parameters = window.top.location.search
-      .replace(/^\?/, '')
-      .split('&')
-      .filter(v => v)
-      .reduce((queries, parameter) =>
-        Object.assign(queries, {
-          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-        }), {});
-
-    if (typeof key === 'string') {
-      return parameters[key];
-    }
-
-    return parameters;
   };
 
   // Checks, sanitizes and returns allowed values for allowed fields
@@ -224,6 +224,10 @@ window.lemonpi = window.lemonpi || [];
     });
 
     if (!errors.length) {
+      if (['propInBasket', 'propPurchased'].includes(result.type)) {
+        fieldTypes.required = ['id', 'advertiserId', 'dynamicInputId'];
+      }
+
       // Check for missing required fields
       fieldTypes.required.forEach((fieldName) => {
         if (!Object.keys(result).includes(fieldName) && !errorFieldNames.includes(fieldName)) {
