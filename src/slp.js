@@ -15,11 +15,11 @@ window.lemonpi = window.lemonpi || [];
   const fieldNames = fieldTypes.booleans
     .concat(fieldTypes.numbers, fieldTypes.strings);
   const config = {
+    debug: /lemonpi_debug/.test(window.top.location.href),
     optionalFields: [],
     scrapeOnce: false,
     testUrl: /./,
     timeout: 500,
-    debug: /lemonpi_debug/.test(location.href),
   };
   let result;
   let errors;
@@ -39,51 +39,21 @@ window.lemonpi = window.lemonpi || [];
     return hash.toString();
   };
 
-  // Returns URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
-  const getUrlPath = (index) => {
-    const urlPath = location.pathname
-      .split('/')
-      .filter(dir => dir)
-      .map(dir => decodeURI(dir));
-
-    if (typeof index === 'number') {
-      return urlPath[index];
-    }
-
-    return urlPath;
-  };
-
-  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
-  const getUrlQuery = (key) => {
-    const parameters = location.search
-      .replace(/^\?/, '')
-      .split('&')
-      .filter(v => v)
-      .reduce((queries, parameter) =>
-        Object.assign(queries, {
-          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-        }), {});
-
-    if (typeof key === 'string') {
-      return parameters[key];
-    }
-
-    return parameters;
-  };
-
-  // Returns trimmed text content from an element selector
-  const getText = (selector) => {
-    const element = window.top.document.querySelector(selector);
-    return (element && element.textContent && element.textContent.trim())
-      ? element.textContent.trim()
-      : undefined;
+  // In debug mode, log messages to the console
+  const logMessage = (message, type) => {
+    const color = type === 'success' ? 'green' : 'red';
+    console.log(
+      `%cSLP%c ${message}`,
+      'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
+      `color: ${color}`
+    );
   };
 
   // Merges and tests configuration
   const handleConfig = (userConfig) => {
     Object.assign(config, userConfig);
 
-    if (config.testUrl && config.testUrl.test && !config.testUrl.test(location.href)) {
+    if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
       errors.push(`The URL doesn't meet the requirements of '${config.testUrl.toString()}'`);
     }
   };
@@ -104,46 +74,69 @@ window.lemonpi = window.lemonpi || [];
     return funcResult;
   };
 
-  // Parses and returns shorthand objects
-  const handleObject = (obj) => {
-    let objResult;
+  // Returns the current URL with optional query string parameters and / or hash
+  const getUrl = (urlConfig) => {
+    let url =
+      `${window.top.location.protocol}//${window.top.location.host}${window.top.location.pathname}`;
 
-    switch (obj.type) {
-      case 'url': {
-        let url = `${location.protocol}//${location.host}${location.pathname}`;
-
-        if (obj.allowedParameters && obj.allowedParameters.length) {
-          url += obj.allowedParameters.reduce((newUrl, parameter, index) => {
-            const separator = index === 0 ? '?' : '&';
-            const key = encodeURI(parameter);
-            const value = encodeURI(getUrlQuery(parameter));
-            return `${newUrl}${separator}${key}=${value}`;
-          });
-        }
-
-        if (obj.customParameters) {
-          const parameters = Object.keys(obj.customParameters);
-          parameters.forEach((parameter, index) => {
-            const separator = !obj.allowedParameters.length && index === 0 ? '?' : '&';
-            const key = encodeURI(parameter);
-            const value = encodeURI(obj.customParameters[parameter]);
-            url += `${url}${separator}${key}=${value}`;
-          });
-        }
-
-        if (obj.hash) {
-          url += location.hash;
-        }
-
-        objResult = url;
-        break;
+    if (urlConfig) {
+      if (urlConfig.allowedParameters && urlConfig.allowedParameters.length) {
+        url += urlConfig.allowedParameters.reduce((newUrl, parameter, index) => {
+          const separator = index === 0 ? '?' : '&';
+          const key = encodeURI(parameter);
+          const value = encodeURI(getUrlQueryParameter(parameter));
+          return `${newUrl}${separator}${key}=${value}`;
+        });
       }
 
-      default:
-        break;
+      if (urlConfig.customParameters) {
+        const parameters = Object.keys(urlConfig.customParameters);
+        parameters.forEach((parameter, index) => {
+          const separator = !urlConfig.allowedParameters.length && index === 0 ? '?' : '&';
+          const key = encodeURI(parameter);
+          const value = encodeURI(urlConfig.customParameters[parameter]);
+          url += `${url}${separator}${key}=${value}`;
+        });
+      }
+
+      if (urlConfig.hash) {
+        url += window.top.location.hash;
+      }
     }
 
-    return objResult;
+    return url;
+  };
+
+  // Returns URL path values, e.g. "example.com/foo/bar" > ['foo', 'bar']
+  const getUrlPathSegment = (index) => {
+    const urlPath = window.top.location.pathname
+      .split('/')
+      .filter(dir => dir)
+      .map(dir => decodeURI(dir));
+
+    if (typeof index === 'number') {
+      return urlPath[index];
+    }
+
+    return urlPath;
+  };
+
+  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
+  const getUrlQueryParameter = (key) => {
+    const parameters = window.top.location.search
+      .replace(/^\?/, '')
+      .split('&')
+      .filter(v => v)
+      .reduce((queries, parameter) =>
+        Object.assign(queries, {
+          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+        }), {});
+
+    if (typeof key === 'string') {
+      return parameters[key];
+    }
+
+    return parameters;
   };
 
   // Checks, sanitizes and returns allowed values for allowed fields
@@ -152,8 +145,6 @@ window.lemonpi = window.lemonpi || [];
 
     if (typeof value === 'function') {
       value = handleFunction(fieldName, value);
-    } else if (typeof value === 'object' && value !== null && value.type) {
-      value = handleObject(value);
     }
 
     switch (typeof value) {
@@ -196,6 +187,11 @@ window.lemonpi = window.lemonpi || [];
     result = {};
     errors = [];
     errorFieldNames = [];
+
+    // Test if the DOM is reachable
+    if (window.top.location.host !== window.self.location.host) {
+      errors.push('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+    }
 
     if (input.config) {
       handleConfig(input.config);
@@ -241,35 +237,16 @@ window.lemonpi = window.lemonpi || [];
     if (result.id !== lastScrapedId) {
       lastScrapedId = result.id;
 
-      // No errors found; push the result object to LemonPI
       if (!errors.length) {
-        // window.lemonpi.push(result);
-        console.log(result);
+        // No errors found; push the result object to LemonPI
+        window.lemonpi.push(result);
 
-        // Execute callback with the result object
-        if (cb) {
-          cb(result);
-        }
-
-        if (config.debug) {
-          console.log(
-            '%cSLP%c Push successful!',
-            'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-            'color: green'
-          );
-        }
-
-        if (config.scrapeOnce) {
-          return;
-        }
+        // Execute an optional callback function with the result object
+        if (cb) cb(result);
+        if (config.debug) logMessage('Push successful!', 'success');
+        if (config.scrapeOnce) return;
       } else if (config.debug) {
-        errors.forEach((error) => {
-          console.log(
-            `%cSLP%c ${error}`,
-            'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-            'color: red'
-          );
-        });
+        errors.forEach(logMessage);
       }
     }
 
@@ -280,9 +257,9 @@ window.lemonpi = window.lemonpi || [];
   };
 
   window.slp = {
-    getUrlPath,
-    getUrlQuery,
-    getText,
+    getUrl,
+    getUrlPathSegment,
+    getUrlQueryParameter,
     scrape,
   };
 }());
