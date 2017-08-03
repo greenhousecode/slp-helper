@@ -242,13 +242,21 @@ window.lemonpi = window.lemonpi || [];
       lastScrapedId = result.id;
 
       if (!errors.length) {
-        // No errors found; push the result object to LemonPI
-        window.lemonpi.push(result);
+        if (cb) {
+          // Execute an optional callback function instead of pushing to LemonPI
+          cb(result);
+        } else {
+          window.lemonpi.push(result);
+        }
 
-        // Execute an optional callback function with the result object
-        if (cb) cb(result);
-        if (config.debug) logMessage('Push successful!', 'success');
-        if (config.scrapeOnce) return;
+        if (config.debug) {
+          logMessage('Push successful!', 'success');
+        }
+
+        if (config.scrapeOnce) {
+          // Stop watching
+          return;
+        }
       } else if (config.debug) {
         errors.forEach(logMessage);
       }

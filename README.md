@@ -51,7 +51,9 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
   const dynamicInputId = 0;
   
   const callback = (result) => {
-    // "result" will contain the pushed object to LemonPI
+    // Do something with result here
+    
+    window.lemonpi.push(result);
   };
   
   window.slp.scrape({
@@ -102,7 +104,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     advertiserId,
     dynamicInputId,
     type: 'propSeen',
-  }, callback); // Calls an optional callback function on every successful LemonPI push
+  }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
 }());
 ```
 
