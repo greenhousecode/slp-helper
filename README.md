@@ -50,6 +50,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
   const advertiserId = 0;
   const dynamicInputId = 0;
   
+  // Optional custom callback
   const callback = (result) => {
     // Do something with result here
     
