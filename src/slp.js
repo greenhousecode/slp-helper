@@ -24,10 +24,11 @@ window.lemonpi = window.lemonpi || [];
   let result;
   let errors;
   let errorFieldNames = [];
-  let lastScrapedId;
+  let lastScrapedHash;
 
   // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
-  const hashString = (string) => {
+  const hashObject = (obj) => {
+    const string = JSON.stringify(obj);
     let hash = 0;
     let chr;
     if (string.length === 0) return hash;
@@ -39,13 +40,12 @@ window.lemonpi = window.lemonpi || [];
     return hash.toString();
   };
 
-  // In debug mode, log messages to the console
-  const logMessage = (message, type) => {
-    const color = type === 'success' ? 'green' : 'red';
+  // In debug mode, log errors to the console
+  const logError = (message) => {
     console.log(
       `%cSLP%c ${message}`,
       'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-      `color: ${color}`
+      'color: red'
     );
   };
 
@@ -206,11 +206,6 @@ window.lemonpi = window.lemonpi || [];
       });
     }
 
-    // Generate a unique ID based the result values
-    if (!result.id) {
-      result.id = hashString(JSON.stringify(result));
-    }
-
     // Remove empty fields
     Object.keys(result).forEach((fieldName) => {
       if (result[fieldName] === undefined || result[fieldName] === '') {
@@ -237,9 +232,11 @@ window.lemonpi = window.lemonpi || [];
       });
     }
 
+    const resultHash = hashObject(result);
+
     // Only perform actions when there's new data to be scraped
-    if (result.id !== lastScrapedId) {
-      lastScrapedId = result.id;
+    if (resultHash !== lastScrapedHash) {
+      lastScrapedHash = resultHash;
 
       if (!errors.length) {
         if (cb) {
@@ -249,16 +246,12 @@ window.lemonpi = window.lemonpi || [];
           window.lemonpi.push(result);
         }
 
-        if (config.debug) {
-          logMessage('Push successful!', 'success');
-        }
-
         if (config.scrapeOnce) {
           // Stop watching
           return;
         }
       } else if (config.debug) {
-        errors.forEach(logMessage);
+        errors.forEach(logError);
       }
     }
 

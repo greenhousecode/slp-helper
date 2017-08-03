@@ -18,7 +18,8 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
     },
     
-    // A custom 'id' field is only necessary if you plan to use propInBasket or propPurchased
+    // Data layer example
+    id: () => window.dataLayer.filter(v => v.sku).pop().sku,
     
     // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
     category: () => window.slp.getUrlPathSegment(2),
@@ -50,9 +51,23 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
   const advertiserId = 0;
   const dynamicInputId = 0;
   
+  const hashObject = (obj) => {
+    const string = JSON.stringify(obj);
+    let hash = 0;
+    let chr;
+    if (string.length === 0) return hash;
+    for (let i = 0; i < string.length; i += 1) {
+      chr = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0;
+    }
+    return hash.toString();
+  };
+  
   // Optional custom callback
   const callback = (result) => {
-    // Do something with result here
+    // Generate a unique ID based the result values
+    result.id = hashObject(result);
     
     window.lemonpi.push(result);
   };
@@ -73,9 +88,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       // Not recommended, use "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
     },
-    
-    // Data layer example
-    id: () => window.dataLayer.filter(v => v.sku).pop().sku,
     
     // Will return a query parameter, e.g. "http://www.example.com/?productCategory=foo" -> "foo"
     category: () => window.slp.getUrlQueryParameter('productCategory'),
@@ -102,6 +114,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     logoUrl: document.querySelector('img.logo').src,
     
     // Constants
+    id: '-',
     advertiserId,
     dynamicInputId,
     type: 'propSeen',
