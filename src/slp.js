@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.0.0 - 2017-08-01 */
+/*! @bluemango/slp-helper - v1.0.1 - 2017-08-04 */
 
 window.lemonpi = window.lemonpi || [];
 

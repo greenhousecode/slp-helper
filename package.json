@@ -4,7 +4,8 @@
   "description": "This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.",
   "main": "src/slp",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack"
   },
   "repository": {
     "type": "git",
@@ -12,5 +13,12 @@
   },
   "author": "Greenhouse Group",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/ghg-development/ghg-lemonpi-slp_helper#readme"
+  "homepage": "https://bitbucket.org/ghg-development/ghg-lemonpi-slp_helper#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-loader": "^7.1.1",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^3.4.1",
+    "webpack-cli": "^1.3.3"
+  }
 }
