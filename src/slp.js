@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.2 - 2017-08-09 */
+/*! @bluemango/slp-helper - v1.1.3 - 2017-08-09 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -164,6 +164,12 @@ window.lemonpi = window.lemonpi || [];
 
       case 'string':
         value = value.trim();
+
+        // Enforce specific formatting for certain fields
+        if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)) {
+          errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
+          errorFieldNames.push(fieldName);
+        }
 
         if (!fieldTypes.strings.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
           errors.push(`'${fieldName}' doesn't expect a string value`);
