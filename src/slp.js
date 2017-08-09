@@ -45,7 +45,7 @@ window.lemonpi = window.lemonpi || [];
     console.log(
       `%cSLP%c ${message}`,
       'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-      'color: red'
+      'color: red',
     );
   };
 
