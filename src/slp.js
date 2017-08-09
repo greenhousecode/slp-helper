@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.4 - 2017-08-09 */
+/*! @bluemango/slp-helper - v1.1.5 - 2017-08-09 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -175,7 +175,7 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
         } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
-            && /^(https?:)?\/\//.test(value)) {
+            && !/^(https?:)?\/\//.test(value)) {
           errors.push(`'${fieldName}' should be an URL and start with 'http(s)://' or '//'`);
           errorFieldNames.push(fieldName);
         } else if (['expiresOn'].includes(fieldName)
