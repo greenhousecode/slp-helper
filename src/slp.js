@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.3 - 2017-08-09 */
+/*! @bluemango/slp-helper - v1.1.4 - 2017-08-09 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -165,14 +165,22 @@ window.lemonpi = window.lemonpi || [];
       case 'string':
         value = value.trim();
 
+        if (!fieldTypes.strings.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' doesn't expect a string value`);
+          errorFieldNames.push(fieldName);
+        }
+
         // Enforce specific formatting for certain fields
         if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)) {
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
-        }
-
-        if (!fieldTypes.strings.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' doesn't expect a string value`);
+        } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
+            && /^(https?:)?\/\//.test(value)) {
+          errors.push(`'${fieldName}' should be an URL and start with 'http(s)://' or '//'`);
+          errorFieldNames.push(fieldName);
+        } else if (['expiresOn'].includes(fieldName)
+            && new Date(value).toString() === 'Invalid Date') {
+          errors.push(`'${fieldName}' should be an ISO 8601 formatted datetime string`);
           errorFieldNames.push(fieldName);
         }
         break;
