@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.1 - 2017-08-09 */
+/*! @bluemango/slp-helper - v1.1.2 - 2017-08-09 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -239,6 +239,9 @@ window.lemonpi = window.lemonpi || [];
       lastScrapedHash = resultHash;
 
       if (config.debug) {
+        // Show errors, if any
+        errors.forEach(logError);
+
         // Show the result object
         console.log(
           '%cSLP',
@@ -246,9 +249,6 @@ window.lemonpi = window.lemonpi || [];
           'Result:',
           result,
         );
-
-        // Show errors, if any
-        errors.forEach(logError);
       }
 
       if (!errors.length) {
