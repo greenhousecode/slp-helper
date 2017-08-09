@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.0.1 - 2017-08-04 */
+/*! @bluemango/slp-helper - v1.1.1 - 2017-08-09 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -238,6 +238,19 @@ window.lemonpi = window.lemonpi || [];
     if (resultHash !== lastScrapedHash) {
       lastScrapedHash = resultHash;
 
+      if (config.debug) {
+        // Show the result object
+        console.log(
+          '%cSLP',
+          'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
+          'Result:',
+          result,
+        );
+
+        // Show errors, if any
+        errors.forEach(logError);
+      }
+
       if (!errors.length) {
         if (cb) {
           // Execute an optional callback function instead of pushing to LemonPI
@@ -250,8 +263,6 @@ window.lemonpi = window.lemonpi || [];
           // Stop watching
           return;
         }
-      } else if (config.debug) {
-        errors.forEach(logError);
       }
     }
 
