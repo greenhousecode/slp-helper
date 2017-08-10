@@ -19,7 +19,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     },
     
     // Data layer example
-    id: () => window.dataLayer.filter(v => v.sku).pop().sku,
+    id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
     
     // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
     category: () => window.slp.getUrlPathSegment(2),
@@ -51,23 +51,9 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
   const advertiserId = 0;
   const dynamicInputId = 0;
   
-  const hashObject = (obj) => {
-    const string = JSON.stringify(obj);
-    let hash = 0;
-    let chr;
-    if (string.length === 0) return hash;
-    for (let i = 0; i < string.length; i += 1) {
-      chr = string.charCodeAt(i);
-      hash = ((hash << 5) - hash) + chr;
-      hash |= 0;
-    }
-    return hash.toString();
-  };
-  
   // Optional custom callback
   const callback = (result) => {
-    // Generate a unique ID based the result values
-    result.id = hashObject(result);
+    // Do something with 'result' here before it's pushed to LemonPI
     
     window.lemonpi.push(result);
   };
@@ -76,18 +62,20 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     config: {
       testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
     
-      // Non-empty field values are required by default, this will whitelist allowed empty fields
+      // Empty fields throw errors by default, these will be ignored
       optionalFields: ['logoUrl'],
     
-      // The amount of milliseconds of delay between value checks
-      timeout: 500,
+      // Stops watching for value updates
+      scrapeOnce: true,
     
-      // Set to true if you know values won't change without a page refresh
-      scrapeOnce: false,
+      // The amount of milliseconds of delay between value checks
+      timeout: 1000,
     
       // Not recommended, use "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
     },
+    
+    // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
     
     // Will return a query parameter, e.g. "http://www.example.com/?productCategory=foo" -> "foo"
     category: () => window.slp.getUrlQueryParameter('productCategory'),
@@ -101,20 +89,19 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       
       // Add custom parameters to the URL
       customParameters: {
-        expandDetails: 'yes',
+        foo: 'bar',
       },
       
       // Allow the hash to be added to the returned URL
       hash: true,
     }),
     
-    imageUrl: document.querySelector('img').src,
+    imageUrl: () => document.querySelector('img').src,
     
     // Defined as optional above, will continue to scrape without its existence
-    logoUrl: document.querySelector('img.logo').src,
+    logoUrl: () => document.querySelector('img.logo').src,
     
     // Constants
-    id: '-',
     advertiserId,
     dynamicInputId,
     type: 'propSeen',
