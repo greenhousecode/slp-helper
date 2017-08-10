@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.6 - 2017-08-10 */
+/*! @bluemango/slp-helper - v1.2.0 - 2017-08-10 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -112,22 +112,29 @@ window.lemonpi = window.lemonpi || [];
       `${window.top.location.protocol}//${window.top.location.host}${window.top.location.pathname}`;
 
     if (urlConfig) {
+      let paramAdded = false;
+
       if (urlConfig.allowedParameters && urlConfig.allowedParameters.length) {
-        url += urlConfig.allowedParameters.reduce((newUrl, parameter, index) => {
-          const separator = index === 0 ? '?' : '&';
+        urlConfig.allowedParameters.forEach((parameter) => {
+          const separator = paramAdded ? '&' : '?';
           const key = encodeURI(parameter);
-          const value = encodeURI(getUrlQueryParameter(parameter));
-          return `${newUrl}${separator}${key}=${value}`;
+          const value = getUrlQueryParameter(parameter);
+
+          if (value !== undefined) {
+            url += `${separator}${key}=${encodeURI(value)}`;
+            paramAdded = true;
+          }
         });
       }
 
       if (urlConfig.customParameters) {
         const parameters = Object.keys(urlConfig.customParameters);
-        parameters.forEach((parameter, index) => {
-          const separator = !urlConfig.allowedParameters.length && index === 0 ? '?' : '&';
+        parameters.forEach((parameter) => {
+          const separator = paramAdded ? '&' : '?';
           const key = encodeURI(parameter);
           const value = encodeURI(urlConfig.customParameters[parameter]);
-          url += `${url}${separator}${key}=${value}`;
+          url += `${separator}${key}=${value}`;
+          paramAdded = true;
         });
       }
 
@@ -175,8 +182,8 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
         } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
-            && !/^(https?:)?\/\//.test(value)) {
-          errors.push(`'${fieldName}' should be an URL and start with 'http(s)://' or '//'`);
+            && !/^https?:\/\//.test(value)) {
+          errors.push(`'${fieldName}' should be an URL and start with 'http://' or 'https://'`);
           errorFieldNames.push(fieldName);
         } else if (['expiresOn'].includes(fieldName)
             && new Date(value).toString() === 'Invalid Date') {
