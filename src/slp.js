@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.5 - 2017-08-09 */
+/*! @bluemango/slp-helper - v1.1.6 - 2017-08-10 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -251,6 +251,11 @@ window.lemonpi = window.lemonpi || [];
     // Only perform actions when there's new data to be scraped
     if (resultHash !== lastScrapedHash) {
       lastScrapedHash = resultHash;
+
+      // If the 'id' field is omitted, use a generated hash based on the whole result object
+      if (!result.id) {
+        result.id = resultHash;
+      }
 
       if (config.debug) {
         // Show errors, if any
