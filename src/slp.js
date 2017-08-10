@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.1.6 - 2017-08-10 */
+/*! @bluemango/slp-helper - v1.1.7 - 2017-08-10 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -175,8 +175,8 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
         } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
-            && !/^(https?:)?\/\//.test(value)) {
-          errors.push(`'${fieldName}' should be an URL and start with 'http(s)://' or '//'`);
+            && !/^https?:\/\//.test(value)) {
+          errors.push(`'${fieldName}' should be an URL and start with 'http://' or 'https://'`);
           errorFieldNames.push(fieldName);
         } else if (['expiresOn'].includes(fieldName)
             && new Date(value).toString() === 'Invalid Date') {
