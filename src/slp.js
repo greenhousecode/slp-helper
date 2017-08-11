@@ -1,8 +1,9 @@
-/*! @bluemango/slp-helper - v1.2.0 - 2017-08-10 */
+/*! @bluemango/slp-helper - v1.2.1 - 2017-08-11 */
 
 window.lemonpi = window.lemonpi || [];
 
 (function () {
+  const consoleStyling = 'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444';
   const fieldTypes = {
     booleans: ['available'],
     numbers: ['advertiserId', 'dynamicInputId'],
@@ -12,13 +13,10 @@ window.lemonpi = window.lemonpi || [];
     required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'imageUrl',
       'title', 'type'],
   };
-  const fieldNames = fieldTypes.booleans
-    .concat(fieldTypes.numbers, fieldTypes.strings);
+  const fieldNames = fieldTypes.booleans.concat(fieldTypes.numbers, fieldTypes.strings);
   const config = {
     debug: /lemonpi_debug/.test(window.top.location.href),
     optionalFields: [],
-    scrapeOnce: false,
-    testUrl: /./,
     timeout: 500,
   };
   let result;
@@ -27,70 +25,51 @@ window.lemonpi = window.lemonpi || [];
   let lastScrapedHash;
 
   // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
-  const hashObject = (obj) => {
-    const string = JSON.stringify(obj);
+  const generateHash = (input) => {
+    const string = JSON.stringify(input);
     let hash = 0;
     let chr;
-    if (string.length === 0) return hash;
+
     for (let i = 0; i < string.length; i += 1) {
       chr = string.charCodeAt(i);
       hash = ((hash << 5) - hash) + chr; // eslint-disable-line no-bitwise
       hash |= 0; // eslint-disable-line no-bitwise
     }
+
     return hash.toString();
   };
 
   // In debug mode, log errors to the console
   const logError = (message) => {
-    console.log(
-      `%cSLP%c ${message}`,
-      'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-      'color: red',
-    );
+    console.log(`%cSLP%c ${message}`, consoleStyling, 'color: red');
   };
 
-  // Returns URL path segments, e.g. "example.com/foo/bar" > ['foo', 'bar']
-  const getUrlPathSegment = (index) => {
-    const urlPath = window.top.location.pathname
-      .split('/')
-      .filter(segment => segment)
-      .map(segment => decodeURI(segment));
+  // Returns an URL path segment
+  const getUrlPathSegment = index => window.top.location.pathname
+    .split('/')
+    .filter(segment => segment)
+    .map(segment => decodeURI(segment))[index];
 
-    if (typeof index === 'number') {
-      return urlPath[index];
-    }
-
-    return urlPath;
-  };
-
-  // Returns query parameters, e.g. "example.com/?foo=bar" > { foo: 'bar' }
-  const getUrlQueryParameter = (key) => {
-    const parameters = window.top.location.search
-      .replace(/^\?/, '')
-      .split('&')
-      .filter(parameter => parameter)
-      .reduce((queries, parameter) =>
-        Object.assign(queries, {
-          [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-        }), {});
-
-    if (typeof key === 'string') {
-      return parameters[key];
-    }
-
-    return parameters;
-  };
+  // Returns a query parameter
+  const getUrlQueryParameter = key => window.top.location.search
+    .replace(/^\?/, '')
+    .split('&')
+    .filter(parameter => parameter)
+    .reduce((parameters, parameter) =>
+      Object.assign(parameters, {
+        [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+      }), {})[key];
 
   // Merges and tests configuration
   const handleConfig = (userConfig) => {
     Object.assign(config, userConfig);
 
     if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
-      errors.push(`The URL doesn't meet the requirements of '${config.testUrl.toString()}'`);
+      errors.push(`The URL doesn't match '${config.testUrl.toString()}'`);
     }
   };
 
-  // Evals, wraps and returns the callback result in a try-catch
+  // Evaluates and returns the callback result within a try-catch
   const handleFunction = (fieldName, func) => {
     let funcResult;
 
@@ -211,21 +190,20 @@ window.lemonpi = window.lemonpi || [];
 
     // Test if the DOM is reachable
     if (window.top.location.host !== window.self.location.host) {
-      errors.push('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+      logError('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+      return;
     }
 
     if (input.config) {
       handleConfig(input.config);
     }
 
-    if (!errors.length) {
-      // Add result values for valid fields
-      Object.keys(input).forEach((fieldName) => {
-        if (fieldNames.includes(fieldName)) {
-          result[fieldName] = getValue(fieldName, input[fieldName]);
-        }
-      });
-    }
+    // Add result values for valid fields
+    Object.keys(input).forEach((fieldName) => {
+      if (fieldNames.includes(fieldName)) {
+        result[fieldName] = getValue(fieldName, input[fieldName]);
+      }
+    });
 
     // Remove empty fields
     Object.keys(result).forEach((fieldName) => {
@@ -239,21 +217,19 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
-    if (!errors.length) {
-      if (['propInBasket', 'propPurchased'].includes(result.type)) {
-        fieldTypes.required = ['id', 'advertiserId', 'dynamicInputId'];
-      }
-
-      // Check for missing required fields
-      fieldTypes.required.forEach((fieldName) => {
-        if (!Object.keys(result).includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' is required and missing`);
-          errorFieldNames.push(fieldName);
-        }
-      });
+    if (['propInBasket', 'propPurchased'].includes(result.type)) {
+      fieldTypes.required = ['id', 'advertiserId', 'dynamicInputId'];
     }
 
-    const resultHash = hashObject(result);
+    // Check for missing required fields
+    fieldTypes.required.forEach((fieldName) => {
+      if (!Object.keys(result).includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+        errors.push(`'${fieldName}' is required and missing`);
+        errorFieldNames.push(fieldName);
+      }
+    });
+
+    const resultHash = generateHash(result);
 
     // Only perform actions when there's new data to be scraped
     if (resultHash !== lastScrapedHash) {
@@ -268,13 +244,10 @@ window.lemonpi = window.lemonpi || [];
         // Show errors, if any
         errors.forEach(logError);
 
-        // Show the result object
-        console.log(
-          '%cSLP',
-          'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444',
-          'Result:',
-          result,
-        );
+        if (!cb) {
+          // Show the result object
+          console.log('%cSLP', consoleStyling, 'Result:', result);
+        }
       }
 
       if (!errors.length) {
@@ -298,7 +271,7 @@ window.lemonpi = window.lemonpi || [];
     }, config.timeout);
   };
 
-  window.slp = {
+  window.slp = window.slp || {
     getUrl,
     getUrlPathSegment,
     getUrlQueryParameter,
