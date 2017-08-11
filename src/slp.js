@@ -271,7 +271,7 @@ window.lemonpi = window.lemonpi || [];
     }, config.timeout);
   };
 
-  window.slp = window.slp || {
+  window.slp = {
     getUrl,
     getUrlPathSegment,
     getUrlQueryParameter,
