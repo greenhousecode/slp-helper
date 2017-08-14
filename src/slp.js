@@ -1,4 +1,4 @@
-/*! @bluemango/slp-helper - v1.2.2 - 2017-08-11 */
+/*! @bluemango/slp-helper - v1.2.3 - 2017-08-14 */
 
 window.lemonpi = window.lemonpi || [];
 
@@ -60,15 +60,6 @@ window.lemonpi = window.lemonpi || [];
         [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
       }), {})[key];
 
-  // Merges and tests configuration
-  const handleConfig = (userConfig) => {
-    Object.assign(config, userConfig);
-
-    if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
-      errors.push(`The URL doesn't match '${config.testUrl.toString()}'`);
-    }
-  };
-
   // Evaluates and returns the callback result within a try-catch
   const handleFunction = (fieldName, func) => {
     let funcResult;
@@ -77,7 +68,7 @@ window.lemonpi = window.lemonpi || [];
       funcResult = func();
     } catch (e) {
       if (!errorFieldNames.includes(fieldName)) {
-        errors.push(`Something went wrong in the '${fieldName}' function: ${e.message}`);
+        errors.push(`'${fieldName}': ${e.message}`);
         errorFieldNames.push(fieldName);
       }
     }
@@ -139,6 +130,7 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' doesn't expect a boolean value`);
           errorFieldNames.push(fieldName);
         }
+
         break;
 
       case 'number':
@@ -146,6 +138,7 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' doesn't expect a number value`);
           errorFieldNames.push(fieldName);
         }
+
         break;
 
       case 'string':
@@ -156,7 +149,7 @@ window.lemonpi = window.lemonpi || [];
           errorFieldNames.push(fieldName);
         }
 
-        // Enforce specific formatting for certain fields
+        // Enforce specific values or formatting for certain fields
         if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)) {
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
@@ -164,11 +157,15 @@ window.lemonpi = window.lemonpi || [];
             && !/^https?:\/\//.test(value)) {
           errors.push(`'${fieldName}' should be an URL and start with 'http://' or 'https://'`);
           errorFieldNames.push(fieldName);
-        } else if (['expiresOn'].includes(fieldName)
-            && new Date(value).toString() === 'Invalid Date') {
-          errors.push(`'${fieldName}' should be an ISO 8601 formatted datetime string`);
+        } else if (fieldName === 'expiresOn' && new Date(value).toString() === 'Invalid Date') {
+          errors.push("'expiresOn' should be an ISO 8601 formatted datetime string");
+          errorFieldNames.push(fieldName);
+        } else if (fieldName === 'type'
+            && !['propInBasket', 'propPurchased', 'propSeen'].includes(value)) {
+          errors.push("'type' should be 'propSeen', 'propInBasket', or 'propPurchased'");
           errorFieldNames.push(fieldName);
         }
+
         break;
 
       default:
@@ -176,6 +173,7 @@ window.lemonpi = window.lemonpi || [];
           errors.push(`'${fieldName}' can't be of type ${typeof value}`);
           errorFieldNames.push(fieldName);
         }
+
         break;
     }
 
@@ -183,19 +181,31 @@ window.lemonpi = window.lemonpi || [];
   };
 
   // Main scrape action
-  const scrape = (input, cb) => {
+  const scrape = (input, callback) => {
     result = {};
     errors = [];
     errorFieldNames = [];
 
     // Test if the DOM is reachable
     if (window.top.location.host !== window.self.location.host) {
-      logError('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+      if (config.debug) {
+        logError('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+      }
+
       return;
     }
 
+    // Merge and test configuration
     if (input.config) {
-      handleConfig(input.config);
+      Object.assign(config, input.config);
+
+      if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
+        if (config.debug) {
+          logError(`The URL doesn't match '${config.testUrl.toString()}'`);
+        }
+
+        return;
+      }
     }
 
     // Add result values for valid fields
@@ -229,31 +239,31 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
-    const resultHash = generateHash(result);
+    const hashedResult = generateHash(result);
 
     // Only perform actions when there's new data to be scraped
-    if (resultHash !== lastScrapedHash) {
-      lastScrapedHash = resultHash;
+    if (hashedResult !== lastScrapedHash) {
+      lastScrapedHash = hashedResult;
 
       // If the 'id' field is omitted, use a generated hash based on the whole result object
       if (!result.id) {
-        result.id = resultHash;
+        result.id = hashedResult;
       }
 
       if (config.debug) {
         // Show errors, if any
         errors.forEach(logError);
 
-        if (!cb) {
+        if (!callback) {
           // Show the result object
           console.log('%cSLP', consoleStyling, 'Result:', result);
         }
       }
 
       if (!errors.length) {
-        if (cb) {
-          // Execute an optional callback function instead of pushing to LemonPI
-          cb(result);
+        if (callback) {
+          // Execute an optional callback function instead of pushing straight to LemonPI
+          callback(result);
         } else {
           window.lemonpi.push(result);
         }
