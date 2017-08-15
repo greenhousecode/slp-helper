@@ -1,5 +1,3 @@
-/*! @bluemango/slp-helper - v1.2.3 - 2017-08-14 */
-
 window.lemonpi = window.lemonpi || [];
 
 (function () {
