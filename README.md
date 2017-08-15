@@ -80,6 +80,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Will return a query parameter, e.g. "http://www.example.com/?productCategory=foo" -> "foo"
     category: () => window.slp.getUrlQueryParameter('productCategory'),
     
+    // All values will be .trim()-med by default
     title: () => document.querySelector('h1').textContent,
     
     // Advanced usage of window.slp.getUrl()
