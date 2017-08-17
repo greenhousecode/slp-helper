@@ -148,19 +148,29 @@ window.lemonpi = window.lemonpi || [];
         }
 
         // Enforce specific values or formatting for certain fields
-        if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)) {
+        if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)
+            && /^-+$/.test(value) && !errorFieldNames.includes(fieldName)) {
           errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
           errorFieldNames.push(fieldName);
         } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
-            && !/^https?:\/\//.test(value)) {
+            && !/^https?:\/\//.test(value) && !errorFieldNames.includes(fieldName)) {
           errors.push(`'${fieldName}' should be an URL and start with 'http://' or 'https://'`);
           errorFieldNames.push(fieldName);
-        } else if (fieldName === 'expiresOn' && new Date(value).toString() === 'Invalid Date') {
+        } else if (fieldName === 'expiresOn' && new Date(value).toString() === 'Invalid Date'
+            && !errorFieldNames.includes(fieldName)) {
           errors.push("'expiresOn' should be an ISO 8601 formatted datetime string");
           errorFieldNames.push(fieldName);
-        } else if (fieldName === 'type'
+        } else if (fieldName === 'type' && !errorFieldNames.includes(fieldName)
             && !['propInBasket', 'propPurchased', 'propSeen'].includes(value)) {
           errors.push("'type' should be 'propSeen', 'propInBasket', or 'propPurchased'");
+          errorFieldNames.push(fieldName);
+        }
+
+        break;
+
+      case 'undefined':
+        if (!config.optionalFields.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
+          errors.push(`'${fieldName}' is undefined`);
           errorFieldNames.push(fieldName);
         }
 
@@ -266,8 +276,8 @@ window.lemonpi = window.lemonpi || [];
           window.lemonpi.push(result);
         }
 
-        if (config.scrapeOnce) {
-          // Stop watching
+        if (!config.keepWatching) {
+          // Stop watching after one successful scrape
           return;
         }
       }
