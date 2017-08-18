@@ -276,7 +276,7 @@ window.lemonpi = window.lemonpi || [];
           window.lemonpi.push(result);
         }
 
-        if (!config.keepWatching) {
+        if (!config.watchChanges) {
           // Stop watching after one successful scrape
           return;
         }
@@ -290,9 +290,10 @@ window.lemonpi = window.lemonpi || [];
   };
 
   window.slp = {
-    getUrl,
-    getUrlPathSegment,
     getUrlQueryParameter,
+    getUrlPathSegment,
+    generateHash,
+    getUrl,
     scrape,
   };
 }());

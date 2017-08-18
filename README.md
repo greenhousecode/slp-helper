@@ -66,7 +66,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       optionalFields: ['logoUrl'],
     
       // Keep watching for value updates, and scrape every time there are changes
-      keepWatching: true,
+      watchChanges: true,
     
       // The amount of milliseconds of delay between value checks
       timeout: 1000,
@@ -138,6 +138,10 @@ examples above for usage.
 This method will let you grab all URL query parameters (object), or a certain URL query parameter
 (string). See examples above for usage.
 
+### `window.slp.generateHash()`
+
+Will return a unique string ([-0-9]) based on the first argument input.
+
 ### `window.slp.scrape()`
 
 Will perform `window.lemonpi.push()` when the output is considered valid. Structure:
@@ -148,7 +152,7 @@ window.slp.scrape({
     // Default configuration
     debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
     optionalFields: [], // Array (with field name strings)
-    keepWatching: false, // Boolean
+    watchChanges: false, // Boolean
     testUrl: undefined, // Regular expression
     timeout: 500, // Integer
   },
