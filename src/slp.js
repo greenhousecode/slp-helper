@@ -19,7 +19,6 @@ window.lemonpi = window.lemonpi || [];
   };
   let result;
   let errors;
-  let errorFieldNames = [];
   let lastScrapedHash;
 
   // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
@@ -38,8 +37,8 @@ window.lemonpi = window.lemonpi || [];
   };
 
   // In debug mode, log errors to the console
-  const logError = (message) => {
-    console.log(`%cSLP%c ${message}`, consoleStyling, 'color: red');
+  const logError = (subject, message) => {
+    console.log(`%cSLP%c ${subject}%c ${message}`, consoleStyling, 'color: red; font-weight: bold', 'color: red');
   };
 
   // Returns an URL path segment
@@ -65,9 +64,8 @@ window.lemonpi = window.lemonpi || [];
     try {
       funcResult = func();
     } catch (e) {
-      if (!errorFieldNames.includes(fieldName)) {
-        errors.push(`'${fieldName}': ${e.message}`);
-        errorFieldNames.push(fieldName);
+      if (!errors[fieldName]) {
+        errors[fieldName] = e.message;
       }
     }
 
@@ -124,17 +122,15 @@ window.lemonpi = window.lemonpi || [];
 
     switch (typeof value) {
       case 'boolean':
-        if (!fieldTypes.booleans.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' doesn't expect a boolean value`);
-          errorFieldNames.push(fieldName);
+        if (!errors[fieldName] && !fieldTypes.booleans.includes(fieldName)) {
+          errors[fieldName] = "doesn't expect a boolean value";
         }
 
         break;
 
       case 'number':
-        if (!fieldTypes.numbers.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' doesn't expect a number value`);
-          errorFieldNames.push(fieldName);
+        if (!errors[fieldName] && !fieldTypes.numbers.includes(fieldName)) {
+          errors[fieldName] = "doesn't expect a number value";
         }
 
         break;
@@ -142,44 +138,59 @@ window.lemonpi = window.lemonpi || [];
       case 'string':
         value = value.trim();
 
-        if (!fieldTypes.strings.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' doesn't expect a string value`);
-          errorFieldNames.push(fieldName);
+        if (!errors[fieldName] && !fieldTypes.strings.includes(fieldName)) {
+          errors[fieldName] = "doesn't expect a string value";
         }
 
         // Enforce specific values or formatting for certain fields
-        if (['category', 'id'].includes(fieldName) && /[^\da-z-]/.test(value)
-            && /^-+$/.test(value) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' only allows lowercase letters, numbers and dashes`);
-          errorFieldNames.push(fieldName);
-        } else if (['clickUrl', 'imageUrl', 'logoUrl'].includes(fieldName)
-            && !/^https?:\/\//.test(value) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' should be an URL and start with 'http://' or 'https://'`);
-          errorFieldNames.push(fieldName);
-        } else if (fieldName === 'expiresOn' && new Date(value).toString() === 'Invalid Date'
-            && !errorFieldNames.includes(fieldName)) {
-          errors.push("'expiresOn' should be an ISO 8601 formatted datetime string");
-          errorFieldNames.push(fieldName);
-        } else if (fieldName === 'type' && !errorFieldNames.includes(fieldName)
-            && !['propInBasket', 'propPurchased', 'propSeen'].includes(value)) {
-          errors.push("'type' should be 'propSeen', 'propInBasket', or 'propPurchased'");
-          errorFieldNames.push(fieldName);
+        switch (fieldName) {
+          case 'category':
+          case 'id':
+            if (!errors[fieldName] && (/[^\da-z-]/.test(value) || /^-+$/.test(value))) {
+              errors[fieldName] = 'only allows lowercase letters, numbers and dashes';
+            }
+
+            break;
+
+          case 'clickUrl':
+          case 'imageUrl':
+          case 'logoUrl':
+            if (!errors[fieldName] && !/^https?:\/\//.test(value)) {
+              errors[fieldName] = 'should be a URL and begin with \'http://\' or \'https://\'';
+            }
+
+            break;
+
+          case 'expiresOn':
+            if (!errors[fieldName] && new Date(value).toString() === 'Invalid Date') {
+              errors[fieldName] = 'should be an ISO 8601 formatted datetime string';
+            }
+
+            break;
+
+          case 'type':
+            if (!errors[fieldName] && !['propInBasket', 'propPurchased', 'propSeen'].includes(value)) {
+              errors[fieldName] = "should be 'propSeen', 'propInBasket', or 'propPurchased'";
+            }
+
+            break;
+
+          default:
+            break;
         }
 
         break;
 
       case 'undefined':
-        if (!config.optionalFields.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' is undefined`);
-          errorFieldNames.push(fieldName);
+        if (!config.optionalFields.includes(fieldName) && !errors[fieldName]) {
+          errors[fieldName] = 'is undefined';
         }
 
         break;
 
       default:
-        if (!errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' can't be of type ${typeof value}`);
-          errorFieldNames.push(fieldName);
+        if (!errors[fieldName]) {
+          errors[fieldName] = `can't be of type ${typeof value}`;
         }
 
         break;
@@ -191,13 +202,12 @@ window.lemonpi = window.lemonpi || [];
   // Main scrape action
   const scrape = (input, callback) => {
     result = {};
-    errors = [];
-    errorFieldNames = [];
+    errors = {};
 
     // Test if the DOM is reachable
     if (window.top.location.host !== window.self.location.host) {
       if (config.debug) {
-        logError('The Smart LemonPI Pixel is placed in an unfriendly iframe');
+        logError('Unfriendly iframe:', "The Smart LemonPI Pixel can't reach outside");
       }
 
       return;
@@ -209,7 +219,7 @@ window.lemonpi = window.lemonpi || [];
 
       if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
         if (config.debug) {
-          logError(`The URL doesn't match '${config.testUrl.toString()}'`);
+          logError('The URL', `doesn't match '${config.testUrl.toString()}'`);
         }
 
         return;
@@ -228,9 +238,8 @@ window.lemonpi = window.lemonpi || [];
       if (result[fieldName] === undefined || result[fieldName] === '') {
         delete result[fieldName];
 
-        if (!config.optionalFields.includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-          errors.push(`'${fieldName}' is empty`);
-          errorFieldNames.push(fieldName);
+        if (!errors[fieldName] && !config.optionalFields.includes(fieldName)) {
+          errors[fieldName] = 'is empty';
         }
       }
     });
@@ -241,9 +250,8 @@ window.lemonpi = window.lemonpi || [];
 
     // Check for missing required fields
     fieldTypes.required.forEach((fieldName) => {
-      if (!Object.keys(result).includes(fieldName) && !errorFieldNames.includes(fieldName)) {
-        errors.push(`'${fieldName}' is required and missing`);
-        errorFieldNames.push(fieldName);
+      if (!errors[fieldName] && !Object.keys(result).includes(fieldName)) {
+        errors[fieldName] = 'is required and missing';
       }
     });
 
@@ -260,7 +268,9 @@ window.lemonpi = window.lemonpi || [];
 
       if (config.debug) {
         // Show errors, if any
-        errors.forEach(logError);
+        Object.keys(errors).forEach((key) => {
+          logError(key, errors[key]);
+        });
 
         if (!callback) {
           // Show the result object
@@ -268,7 +278,7 @@ window.lemonpi = window.lemonpi || [];
         }
       }
 
-      if (!errors.length) {
+      if (!Object.keys(errors).length) {
         if (callback) {
           // Execute an optional callback function instead of pushing straight to LemonPI
           callback(result);
