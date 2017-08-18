@@ -65,8 +65,8 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       // Empty fields throw errors by default, these will be ignored
       optionalFields: ['logoUrl'],
     
-      // Stops watching for value updates
-      scrapeOnce: true,
+      // Keep watching for value updates, and scrape every time there are changes
+      watchChanges: true,
     
       // The amount of milliseconds of delay between value checks
       timeout: 1000,
@@ -105,6 +105,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Constants
     advertiserId,
     dynamicInputId,
+    available: true,
     type: 'propSeen',
   }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
 }());
@@ -137,6 +138,10 @@ examples above for usage.
 This method will let you grab all URL query parameters (object), or a certain URL query parameter
 (string). See examples above for usage.
 
+### `window.slp.generateHash()`
+
+Will return a unique string ([-0-9]) based on the first argument input.
+
 ### `window.slp.scrape()`
 
 Will perform `window.lemonpi.push()` when the output is considered valid. Structure:
@@ -145,11 +150,11 @@ Will perform `window.lemonpi.push()` when the output is considered valid. Struct
 window.slp.scrape({
   config: {
     // Default configuration
-    debug: /lemonpi_debug/.test(window.top.location.href),
-    optionalFields: [],
-    scrapeOnce: false,
-    testUrl: /./,
-    timeout: 500,
+    debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
+    optionalFields: [], // Array (with field name strings)
+    watchChanges: false, // Boolean
+    testUrl: undefined, // Regular expression
+    timeout: 500, // Integer
   },
   
   // LemonPI fields
