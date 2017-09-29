@@ -64,7 +64,7 @@ window.lemonpi = window.lemonpi || [];
     try {
       funcResult = func();
     } catch (e) {
-      if (!errors[fieldName]) {
+      if (!errors[fieldName] && !config.optionalFields.includes(fieldName)) {
         errors[fieldName] = e.message;
       }
     }
@@ -205,7 +205,9 @@ window.lemonpi = window.lemonpi || [];
     errors = {};
 
     // Test if the DOM is reachable
-    if (window.top.location.host !== window.self.location.host) {
+    try {
+      window.top.document; // eslint-disable-line no-unused-expressions
+    } catch (e) {
       if (config.debug) {
         logError('Unfriendly iframe:', "The Smart LemonPI Pixel can't reach outside");
       }

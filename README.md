@@ -10,32 +10,32 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 (function () {
   const advertiserId = 0;
   const dynamicInputId = 0;
-  
+
   window.slp.scrape({
     // Optional (but recommended) configuration
     config: {
       // Whitelist specific URLs using RegEx
       testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
     },
-    
+
     // Data layer example
     id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
-    
+
     // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
     category: () => window.slp.getUrlPathSegment(2),
-    
+
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
-    
+
     // Gets the current URL without query parameters or hash
     clickUrl: window.slp.getUrl,
-    
+
     // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
-    
+
     // Example item availability check
     available: () => !!document.querySelector('.in-stock'),
-    
+
     // Constants
     advertiserId,
     dynamicInputId,
@@ -47,61 +47,63 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 ## Advanced example (ES6)
 
 ```javascript
+window.lemonpi = window.lemonpi || [];
+
 (function () {
   const advertiserId = 0;
   const dynamicInputId = 0;
-  
+
   // Optional custom callback
   const callback = (result) => {
-    // Do something with 'result' here before it's pushed to LemonPI
-    
+    // Do something with 'result' here
+
     window.lemonpi.push(result);
   };
-  
+
   window.slp.scrape({
     config: {
       testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
-    
+
       // Empty fields throw errors by default, these will be ignored
       optionalFields: ['logoUrl'],
-    
+
       // Keep watching for value updates, and scrape every time there are changes
       watchChanges: true,
-    
+
       // The amount of milliseconds of delay between value checks
       timeout: 1000,
-    
+
       // Not recommended, use "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
     },
-    
+
     // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
-    
+
     // Will return a query parameter, e.g. "http://www.example.com/?productCategory=foo" -> "foo"
     category: () => window.slp.getUrlQueryParameter('productCategory'),
-    
+
     // All values will be .trim()-med by default
     title: () => document.querySelector('h1').textContent,
-    
+
     // Advanced usage of window.slp.getUrl()
     clickUrl: () => window.slp.getUrl({
       // Allow specified URL paramters to be added to the returned URL
       allowedParameters: ['productColor', 'productCategory'],
-      
+
       // Add custom parameters to the URL
       customParameters: {
         foo: 'bar',
       },
-      
+
       // Allow the hash to be added to the returned URL
       hash: true,
     }),
-    
+
     imageUrl: () => document.querySelector('img').src,
-    
+
     // Defined as optional above, will continue to scrape without its existence
     logoUrl: () => document.querySelector('img.logo').src,
-    
+
     // Constants
     advertiserId,
     dynamicInputId,
@@ -148,24 +150,31 @@ Will perform `window.lemonpi.push()` when the output is considered valid. Struct
 
 ```javascript
 window.slp.scrape({
+  // Optional
   config: {
-    // Default configuration
+    // Defaults
     debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
     optionalFields: [], // Array (with field name strings)
     watchChanges: false, // Boolean
     testUrl: undefined, // Regular expression
     timeout: 500, // Integer
   },
-  
+
   // LemonPI fields
+  // Required:
   id: '',
+  category: '',
   title: '',
   clickUrl: '',
   imageUrl: '',
-  category: '',
+  available: true,
+  type: '',
+  advertiserId: 0,
+  dynamicInputId: 0,
+
+  // Optional:
   description: '',
   logoUrl: '',
-  available: true,
   expiresOn: '',
   priceNormal: '',
   priceDiscount: '',
@@ -174,9 +183,6 @@ window.slp.scrape({
   custom2: '',
   custom3: '',
   custom4: '',
-  type: '',
-  advertiserId: 0,
-  dynamicInputId: 0,
 }, callback);
 ```
 
