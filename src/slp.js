@@ -4,12 +4,37 @@ window.lemonpi = window.lemonpi || [];
   const consoleStyling = 'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444';
   const fieldTypes = {
     booleans: ['available'],
-    numbers: ['advertiserId', 'dynamicInputId'],
-    strings: ['category', 'clickUrl', 'custom1', 'custom2', 'custom3', 'custom4', 'description',
-      'expiresOn', 'id', 'imageUrl', 'logoUrl', 'priceDiscount', 'priceNormal', 'stickerText',
-      'title', 'type'],
-    required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'imageUrl',
-      'title', 'type'],
+    numbers: [
+      'advertiserId',
+      'dynamicInputId',
+    ],
+    strings: [
+      'category',
+      'clickUrl',
+      'custom1',
+      'custom2',
+      'custom3',
+      'custom4',
+      'description',
+      'expiresOn',
+      'id',
+      'imageUrl',
+      'logoUrl',
+      'priceDiscount',
+      'priceNormal',
+      'stickerText',
+      'title',
+      'type',
+    ],
+    required: [
+      'advertiserId',
+      'available',
+      'category',
+      'dynamicInputId',
+      'imageUrl',
+      'title',
+      'type',
+    ],
   };
   const fieldNames = fieldTypes.booleans.concat(fieldTypes.numbers, fieldTypes.strings);
   const config = {
@@ -209,7 +234,7 @@ window.lemonpi = window.lemonpi || [];
       window.top.document; // eslint-disable-line no-unused-expressions
     } catch (e) {
       if (config.debug) {
-        logError('Unfriendly iframe:', "The Smart LemonPI Pixel can't reach outside");
+        logError('Unfriendly iframe!', "The Smart LemonPI Pixel can't reach outside");
       }
 
       return;
@@ -235,7 +260,7 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
-    // Remove empty fields
+    // Remove empty fields (required for fields like logoUrl)
     Object.keys(result).forEach((fieldName) => {
       if (result[fieldName] === undefined || result[fieldName] === '') {
         delete result[fieldName];
@@ -246,6 +271,7 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
+    // Change required fields for 'propInBasket' and 'propPurchased'
     if (['propInBasket', 'propPurchased'].includes(result.type)) {
       fieldTypes.required = ['id', 'advertiserId', 'dynamicInputId'];
     }
@@ -266,6 +292,11 @@ window.lemonpi = window.lemonpi || [];
       // If the 'id' field is omitted, use a generated hash based on the whole result object
       if (!result.id) {
         result.id = hashedResult;
+      }
+
+      // If the 'clickUrl' field is omitted, use the current URL without query parameters or hash
+      if (!result.clickUrl) {
+        result.clickUrl = getUrl();
       }
 
       if (config.debug) {
@@ -301,7 +332,8 @@ window.lemonpi = window.lemonpi || [];
     }, config.timeout);
   };
 
-  window.slp = {
+  // Disable overwriting when the SLP is loaded multiple times
+  window.slp = window.slp || {
     getUrlQueryParameter,
     getUrlPathSegment,
     generateHash,
