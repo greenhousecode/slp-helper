@@ -4,16 +4,41 @@ window.lemonpi = window.lemonpi || [];
   const consoleStyling = 'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444';
   const fieldTypes = {
     booleans: ['available'],
-    numbers: ['advertiserId', 'dynamicInputId'],
-    strings: ['category', 'clickUrl', 'custom1', 'custom2', 'custom3', 'custom4', 'description',
-      'expiresOn', 'id', 'imageUrl', 'logoUrl', 'priceDiscount', 'priceNormal', 'stickerText',
-      'title', 'type'],
-    required: ['advertiserId', 'available', 'category', 'clickUrl', 'dynamicInputId', 'imageUrl',
-      'title', 'type'],
+    numbers: [
+      'advertiserId',
+      'dynamicInputId',
+    ],
+    strings: [
+      'category',
+      'clickUrl',
+      'custom1',
+      'custom2',
+      'custom3',
+      'custom4',
+      'description',
+      'expiresOn',
+      'id',
+      'imageUrl',
+      'logoUrl',
+      'priceDiscount',
+      'priceNormal',
+      'stickerText',
+      'title',
+      'type',
+    ],
+    required: [
+      'advertiserId',
+      'available',
+      'category',
+      'dynamicInputId',
+      'imageUrl',
+      'title',
+      'type',
+    ],
   };
   const fieldNames = fieldTypes.booleans.concat(fieldTypes.numbers, fieldTypes.strings);
   const config = {
-    debug: /lemonpi_debug/.test(window.top.location.href),
+    debug: /lemonpi_debug/.test(window.location.href),
     optionalFields: [],
     timeout: 500,
   };
@@ -42,13 +67,13 @@ window.lemonpi = window.lemonpi || [];
   };
 
   // Returns an URL path segment
-  const getUrlPathSegment = index => window.top.location.pathname
+  const getUrlPathSegment = index => window.location.pathname
     .split('/')
     .filter(segment => segment)
     .map(segment => decodeURI(segment))[index];
 
   // Returns a query parameter
-  const getUrlQueryParameter = key => window.top.location.search
+  const getUrlQueryParameter = key => window.location.search
     .replace(/^\?/, '')
     .split('&')
     .filter(parameter => parameter)
@@ -75,7 +100,7 @@ window.lemonpi = window.lemonpi || [];
   // Returns the current URL with optional query string parameters and / or hash
   const getUrl = (urlConfig) => {
     let url =
-      `${window.top.location.protocol}//${window.top.location.host}${window.top.location.pathname}`;
+      `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
 
     if (urlConfig) {
       let paramAdded = false;
@@ -105,7 +130,7 @@ window.lemonpi = window.lemonpi || [];
       }
 
       if (urlConfig.hash) {
-        url += window.top.location.hash;
+        url += window.location.hash;
       }
     }
 
@@ -204,22 +229,11 @@ window.lemonpi = window.lemonpi || [];
     result = {};
     errors = {};
 
-    // Test if the DOM is reachable
-    try {
-      window.top.document; // eslint-disable-line no-unused-expressions
-    } catch (e) {
-      if (config.debug) {
-        logError('Unfriendly iframe:', "The Smart LemonPI Pixel can't reach outside");
-      }
-
-      return;
-    }
-
     // Merge and test configuration
     if (input.config) {
       Object.assign(config, input.config);
 
-      if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.top.location.href)) {
+      if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.location.href)) {
         if (config.debug) {
           logError('The URL', `doesn't match '${config.testUrl.toString()}'`);
         }
@@ -235,7 +249,7 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
-    // Remove empty fields
+    // Remove empty fields (required for fields like logoUrl)
     Object.keys(result).forEach((fieldName) => {
       if (result[fieldName] === undefined || result[fieldName] === '') {
         delete result[fieldName];
@@ -246,6 +260,7 @@ window.lemonpi = window.lemonpi || [];
       }
     });
 
+    // Change required fields for 'propInBasket' and 'propPurchased'
     if (['propInBasket', 'propPurchased'].includes(result.type)) {
       fieldTypes.required = ['id', 'advertiserId', 'dynamicInputId'];
     }
@@ -266,6 +281,11 @@ window.lemonpi = window.lemonpi || [];
       // If the 'id' field is omitted, use a generated hash based on the whole result object
       if (!result.id) {
         result.id = hashedResult;
+      }
+
+      // If the 'clickUrl' field is omitted, use the current URL without query parameters or hash
+      if (!result.clickUrl) {
+        result.clickUrl = getUrl();
       }
 
       if (config.debug) {
@@ -301,7 +321,8 @@ window.lemonpi = window.lemonpi || [];
     }, config.timeout);
   };
 
-  window.slp = {
+  // Disable overwriting when the SLP is loaded multiple times
+  window.slp = window.slp || {
     getUrlQueryParameter,
     getUrlPathSegment,
     generateHash,
