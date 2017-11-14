@@ -170,12 +170,21 @@ window.lemonpi = window.lemonpi || [];
         // Enforce specific values or formatting for certain fields
         switch (fieldName) {
           case 'category':
-          case 'id':
-            if (!errors[fieldName] && (/[^\da-z-]/.test(value) || /^-+$/.test(value))) {
-              errors[fieldName] = 'only allows lowercase letters, numbers and dashes';
-            }
+          case 'id': {
+            const accentedChars = 'àáâãäåòóôõöőøèéêëçðìíîïùúûüűñšÿýž';
+            const replacedChars = 'aaaaaaoooooooeeeecdiiiiuuuuunsyyz';
+
+            value = value
+              .toLowerCase()
+              .replace(/[^\da-z]/g, (char) => {
+                const accentIndex = accentedChars.indexOf(char);
+                return replacedChars[accentIndex] || ' ';
+              })
+              .trim()
+              .replace(/\s+/, '-');
 
             break;
+          }
 
           case 'clickUrl':
           case 'imageUrl':
