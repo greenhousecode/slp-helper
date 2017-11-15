@@ -181,7 +181,7 @@ window.lemonpi = window.lemonpi || [];
                 return replacedChars[accentIndex] || ' ';
               })
               .trim()
-              .replace(/\s+/, '-');
+              .replace(/\s+/g, '-');
 
             break;
           }
