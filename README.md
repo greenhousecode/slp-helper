@@ -15,7 +15,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Optional (but recommended) configuration
     config: {
       // Whitelist specific URLs using RegEx
-      testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
+      testUrl: /www\.example\.com/,
     },
 
     // Data layer example
@@ -27,7 +27,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
 
-    // Gets the current URL without query parameters or hash
+    // Gets the current URL without query parameters or hash, omit this line to get the same result
     clickUrl: window.slp.getUrl,
 
     // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
