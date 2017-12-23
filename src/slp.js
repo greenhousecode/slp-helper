@@ -63,7 +63,7 @@ window.lemonpi = window.lemonpi || [];
 
   // In debug mode, log errors to the console
   const logError = (subject, message) => {
-    console.log(`%cSLP%c ${subject}%c ${message}`, consoleStyling, 'color: red; font-weight: bold', 'color: red');
+    console.log(`%cSLP%c ${subject}%c ${message}`, consoleStyling, 'color:red;font-weight:bold;', 'color:red;');
   };
 
   // Returns an URL path segment
@@ -161,7 +161,8 @@ window.lemonpi = window.lemonpi || [];
         break;
 
       case 'string':
-        value = value.trim();
+        // Clear (multiple) whitespaces, tab characters, newline returns, etc.
+        value = value.replace(/\s+/g, ' ').trim();
 
         if (!errors[fieldName] && !fieldTypes.strings.includes(fieldName)) {
           errors[fieldName] = "doesn't expect a string value";
@@ -302,14 +303,13 @@ window.lemonpi = window.lemonpi || [];
         Object.keys(errors).forEach((key) => {
           logError(key, errors[key]);
         });
-
-        if (!callback) {
-          // Show the result object
-          console.log('%cSLP', consoleStyling, 'Result:', result);
-        }
       }
 
       if (!Object.keys(errors).length) {
+        if (config.debug) {
+          console.log('%cSLP%c Scrape successful', consoleStyling, 'color:green;', result);
+        }
+
         if (callback) {
           // Execute an optional callback function instead of pushing straight to LemonPI
           callback(result);
@@ -321,6 +321,8 @@ window.lemonpi = window.lemonpi || [];
           // Stop watching after one successful scrape
           return;
         }
+      } else if (config.debug) {
+        console.log('%cSLP%c Scrape unsuccessful', consoleStyling, 'color:red;', result);
       }
     }
 
