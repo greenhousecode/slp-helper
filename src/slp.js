@@ -1,7 +1,7 @@
 window.lemonpi = window.lemonpi || [];
 
 (function () {
-  const consoleStyling = 'padding: 1px 6px 0; border-radius: 2px; background: #fbde00; color: #444';
+  const consoleStyling = 'padding:1px 6px 0;border-radius:2px;background:#fbde00;color:#444;';
   const fieldTypes = {
     booleans: ['available'],
     numbers: [
@@ -190,7 +190,7 @@ window.lemonpi = window.lemonpi || [];
           case 'imageUrl':
           case 'logoUrl':
             if (!errors[fieldName] && !/^https?:\/\//.test(value)) {
-              errors[fieldName] = 'should be a URL and begin with \'http://\' or \'https://\'';
+              errors[fieldName] = "should be a URL and start with 'http://' or 'https://'";
             }
 
             break;
