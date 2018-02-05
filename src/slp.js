@@ -46,6 +46,24 @@ window.lemonpi = window.lemonpi || [];
   let errors;
   let lastScrapedHash;
 
+  const getBackgroundImageUrl = (elementOrSelector) => {
+    let element = elementOrSelector;
+
+    if (typeof elementOrSelector === 'string') {
+      element = document.querySelector(elementOrSelector);
+    }
+
+    if (!element) {
+      return undefined;
+    }
+
+    const backgroundImage = window.getComputedStyle(element)
+      .getPropertyValue('background-image')
+      .replace(/url\(['"]?|['"]?\)/g, '');
+
+    return backgroundImage === 'none' ? undefined : backgroundImage;
+  };
+
   // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
   const generateHash = (input) => {
     const string = JSON.stringify(input);
@@ -334,6 +352,7 @@ window.lemonpi = window.lemonpi || [];
 
   // Disable overwriting when the SLP is loaded multiple times
   window.slp = window.slp || {
+    getBackgroundImageUrl,
     getUrlQueryParameter,
     getUrlPathSegment,
     generateHash,
