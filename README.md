@@ -27,8 +27,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
 
-    // Gets the current URL without query parameters or hash, omit this line to get the same result
-    clickUrl: window.slp.getUrl,
+    // Omit the "clickUrl" field to return the current URL
 
     // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
@@ -66,9 +65,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 
       // Keep watching for value updates, and scrape every time there are changes
       watchChanges: true,
-
-      // The amount of milliseconds of delay between value checks
-      timeout: 1000,
 
       // Not recommended, use "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
@@ -153,12 +149,12 @@ Will perform `window.lemonpi.push()` when the output is considered valid. Struct
 window.slp.scrape({
   // Optional
   config: {
-    // Defaults
+    // Default settings:
     debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
     optionalFields: [], // Array (with field name strings)
     watchChanges: false, // Boolean
     testUrl: undefined, // Regular expression
-    timeout: 500, // Integer
+    timeout: 500, // Integer - The amount of milliseconds of delay between value checks
   },
 
   // LemonPI fields
