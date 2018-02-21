@@ -19,7 +19,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     },
 
     // Data layer example
-    id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
+    id: () => window.dataLayer.filter(entry => entry.sku).slice(-1)[0].sku,
 
     // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
     category: () => window.slp.getUrlPathSegment(2),
