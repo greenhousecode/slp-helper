@@ -150,11 +150,11 @@ window.slp.scrape({
   // Optional
   config: {
     // Default settings:
-    debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
-    optionalFields: [], // Array (with field name strings)
-    watchChanges: false, // Boolean
-    testUrl: undefined, // Regular expression
-    timeout: 500, // Integer - The amount of milliseconds of delay between value checks
+    debug: /lemonpi_debug/.test(window.top.location.href), // [Boolean]
+    optionalFields: [], // [Array] (containing field name strings)
+    watchChanges: false, // [Boolean]
+    testUrl: undefined, // [RegEx|Undefined]
+    timeout: 500, // [Integer] The amount of milliseconds of delay between value checks
   },
 
   // LemonPI fields
