@@ -19,7 +19,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     },
 
     // Data layer example
-    id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
+    id: () => window.dataLayer.filter(entry => entry.sku).slice(-1)[0].sku,
 
     // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
     category: () => window.slp.getUrlPathSegment(2),
@@ -27,7 +27,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
 
-    // Omit the "clickUrl" field to return the current URL
+    // Omit the "clickUrl" field to return the current URL without parameters
 
     // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
@@ -38,7 +38,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Constants
     advertiserId,
     dynamicInputId,
-    type: 'propSeen',
   });
 }());
 ```
@@ -100,8 +99,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Constants
     advertiserId,
     dynamicInputId,
-    available: true,
-    type: 'propSeen',
   }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
 }());
 ```
@@ -150,24 +147,26 @@ window.slp.scrape({
   // Optional
   config: {
     // Default settings:
-    debug: /lemonpi_debug/.test(window.top.location.href), // Boolean
-    optionalFields: [], // Array (with field name strings)
-    watchChanges: false, // Boolean
-    testUrl: undefined, // Regular expression
-    timeout: 500, // Integer - The amount of milliseconds of delay between value checks
+    debug: /lemonpi_debug/.test(window.top.location.href), // [Boolean]
+    optionalFields: [], // [Array] (containing field name strings)
+    watchChanges: false, // [Boolean]
+    testUrl: undefined, // [RegEx|Undefined]
+    timeout: 500, // [Integer] The amount of milliseconds of delay between value checks
   },
 
   // LemonPI fields
   // Required:
-  id: '',
-  category: '',
   title: '',
-  clickUrl: '',
   imageUrl: '',
-  available: true,
-  type: '',
   advertiserId: 0,
   dynamicInputId: 0,
+
+  // Required, but with default values
+  id: '', // Returns a unique default hash value based on all field values by default
+  category: '', // Returns "none" by default
+  clickUrl: '', // Returns the current URL without parameters by default
+  available: true, // Returns true by default
+  type: '', // Returns "propSeen" by default
 
   // Optional:
   description: '',
