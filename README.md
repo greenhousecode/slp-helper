@@ -156,15 +156,17 @@ window.slp.scrape({
 
   // LemonPI fields
   // Required:
-  id: '',
-  category: '',
   title: '',
-  clickUrl: '',
   imageUrl: '',
-  available: true,
-  type: '',
   advertiserId: 0,
   dynamicInputId: 0,
+
+  // Required, but with default values
+  id: '', // Returns a unique default hash value based on all field values by default
+  category: '', // Returns "none" by default
+  clickUrl: '', // Returns the current URL without parameters by default
+  available: true, // Returns true by default
+  type: '', // Returns "propSeen" by default
 
   // Optional:
   description: '',
