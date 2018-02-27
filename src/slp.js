@@ -28,12 +28,9 @@ window.lemonpi = window.lemonpi || [];
     ],
     required: [
       'advertiserId',
-      'available',
-      'category',
       'dynamicInputId',
       'imageUrl',
       'title',
-      'type',
     ],
   };
   const fieldNames = fieldTypes.booleans.concat(fieldTypes.numbers, fieldTypes.strings);
@@ -306,9 +303,24 @@ window.lemonpi = window.lemonpi || [];
     if (hashedResult !== lastScrapedHash) {
       lastScrapedHash = hashedResult;
 
+      // Use the propSeen type as default
+      if (!result.type) {
+        result.type = 'propSeen';
+      }
+
       // If the 'id' field is omitted, use a generated hash based on the whole result object
       if (!result.id) {
         result.id = hashedResult;
+      }
+
+      // Since category is a required field, but often not used, return a default "none" value
+      if (!result.category) {
+        result.category = 'none';
+      }
+
+      // Since available is a required field, but often not used, return a default "none" value
+      if (typeof result.available === 'undefined') {
+        result.available = true;
       }
 
       // If the 'clickUrl' field is omitted, use the current URL without query parameters or hash
@@ -325,7 +337,7 @@ window.lemonpi = window.lemonpi || [];
 
       if (!Object.keys(errors).length) {
         if (config.debug) {
-          console.log('%cSLP%c Scrape successful', consoleStyling, 'color:green;', result);
+          console.log('%cSLP%c Scrape successful:', consoleStyling, 'color:green;', result);
         }
 
         if (callback) {
@@ -340,7 +352,7 @@ window.lemonpi = window.lemonpi || [];
           return;
         }
       } else if (config.debug) {
-        console.log('%cSLP%c Scrape unsuccessful', consoleStyling, 'color:red;', result);
+        console.log('%cSLP%c Scrape unsuccessful:', consoleStyling, 'color:red;', result);
       }
     }
 

@@ -4,8 +4,7 @@
     "browser": true
   },
   "rules": {
-    "no-console": "off",
-    "no-eval": "off",
-    "func-names": "off"
+    "func-names": 0,
+    "no-console": 0
   }
 }
