@@ -27,7 +27,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
 
-    // Omit the "clickUrl" field to return the current URL
+    // Omit the "clickUrl" field to return the current URL without parameters
 
     // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
