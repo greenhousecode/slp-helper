@@ -38,7 +38,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Constants
     advertiserId,
     dynamicInputId,
-    type: 'propSeen',
   });
 }());
 ```
@@ -100,8 +99,6 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     // Constants
     advertiserId,
     dynamicInputId,
-    available: true,
-    type: 'propSeen',
   }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
 }());
 ```
