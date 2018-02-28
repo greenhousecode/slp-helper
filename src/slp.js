@@ -308,24 +308,26 @@ window.lemonpi = window.lemonpi || [];
         result.type = 'propSeen';
       }
 
-      // If the 'id' field is omitted, use a generated hash based on the whole result object
-      if (!result.id) {
-        result.id = hashedResult;
-      }
+      if (result.type === 'propSeen') {
+        // If the 'id' field is omitted, use a generated hash based on the whole result object
+        if (!result.id) {
+          result.id = hashedResult;
+        }
 
-      // Since category is a required field, but often not used, return a default "none" value
-      if (!result.category) {
-        result.category = 'none';
-      }
+        // Since category is a required field, but often not used, return a default "none" value
+        if (!result.category) {
+          result.category = 'none';
+        }
 
-      // Since available is a required field, but often not used, return a default "none" value
-      if (typeof result.available === 'undefined') {
-        result.available = true;
-      }
+        // Since available is a required field, but often not used, return a default "none" value
+        if (typeof result.available === 'undefined') {
+          result.available = true;
+        }
 
-      // If the 'clickUrl' field is omitted, use the current URL without query parameters or hash
-      if (!result.clickUrl) {
-        result.clickUrl = getUrl();
+        // If the 'clickUrl' field is omitted, use the current URL without query parameters or hash
+        if (!result.clickUrl) {
+          result.clickUrl = getUrl();
+        }
       }
 
       if (config.debug) {
