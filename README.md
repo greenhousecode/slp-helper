@@ -1,4 +1,3 @@
-
 # SLP Helper
 
 This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value
