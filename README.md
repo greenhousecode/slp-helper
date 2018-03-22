@@ -30,7 +30,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 
     // Omit the "clickUrl" field to return the current URL without query parameters or hash
 
-    // No existence checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
+    // No DOM existence checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
 
     // Example item availability check
