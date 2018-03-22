@@ -41,7 +41,38 @@ window.lemonpi = window.lemonpi || [];
   };
   let result;
   let errors;
+  let pointerCoords;
   let lastScrapedHash;
+  let interactedStateHash;
+
+  // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+  const generateHash = (...args) => {
+    const string = JSON.stringify(args);
+    let hash = 0;
+    let chr;
+
+    for (let i = 0; i < string.length; i += 1) {
+      chr = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr; // eslint-disable-line no-bitwise
+      hash |= 0; // eslint-disable-line no-bitwise
+    }
+
+    return hash.toString();
+  };
+
+  // Returns wether or not the user has interacted (srolled or moved mouse) since the last time this
+  // function was called
+  const getUserInteracted = () => {
+    const scrollCoords = document.body.getBoundingClientRect();
+    const newInteractedStateHash = generateHash(scrollCoords, pointerCoords);
+
+    if (interactedStateHash !== newInteractedStateHash) {
+      interactedStateHash = newInteractedStateHash;
+      return true;
+    }
+
+    return false;
+  };
 
   const getBackgroundImageUrl = (elementOrSelector) => {
     let element = elementOrSelector;
@@ -59,21 +90,6 @@ window.lemonpi = window.lemonpi || [];
       .replace(/url\(['"]?|['"]?\)/g, '');
 
     return backgroundImage === 'none' ? undefined : backgroundImage;
-  };
-
-  // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
-  const generateHash = (input) => {
-    const string = JSON.stringify(input);
-    let hash = 0;
-    let chr;
-
-    for (let i = 0; i < string.length; i += 1) {
-      chr = string.charCodeAt(i);
-      hash = ((hash << 5) - hash) + chr; // eslint-disable-line no-bitwise
-      hash |= 0; // eslint-disable-line no-bitwise
-    }
-
-    return hash.toString();
   };
 
   // In debug mode, log errors to the console
@@ -256,6 +272,11 @@ window.lemonpi = window.lemonpi || [];
 
     // Merge and test configuration
     if (input.config) {
+      // Use a longer default interval time when longestViewed is active
+      if (input.config.longestViewed) {
+        config.interval = 1000;
+      }
+
       Object.assign(config, input.config);
 
       if (config.testUrl && config.testUrl.test && !config.testUrl.test(window.location.href)) {
@@ -264,6 +285,13 @@ window.lemonpi = window.lemonpi || [];
         }
 
         return;
+      }
+
+      // Store the cursor position to determine user interaction
+      if (config.longestViewed) {
+        document.addEventListener('mousemove', (event) => {
+          pointerCoords = [event.pageX, event.pageY];
+        });
       }
     }
 
@@ -299,8 +327,8 @@ window.lemonpi = window.lemonpi || [];
 
     const hashedResult = generateHash(result);
 
-    // Only perform actions when there's new data to be scraped
-    if (hashedResult !== lastScrapedHash) {
+    // Only perform actions when there's new data to be scraped, or longestViewed is used
+    if (hashedResult !== lastScrapedHash || (config.longestViewed && getUserInteracted())) {
       lastScrapedHash = hashedResult;
 
       // Use the propSeen type as default
@@ -349,7 +377,7 @@ window.lemonpi = window.lemonpi || [];
           window.lemonpi.push(result);
         }
 
-        if (!config.watchChanges) {
+        if (!config.watchChanges && !config.longestViewed) {
           // Stop watching after one successful scrape
           return;
         }
