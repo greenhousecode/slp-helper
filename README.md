@@ -1,3 +1,4 @@
+
 # SLP Helper
 
 This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value
@@ -19,17 +20,18 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
     },
 
     // Data layer example
-    id: () => window.dataLayer.filter(entry => entry.sku).slice(-1)[0].sku,
+    id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
 
-    // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/" -> "bar"
-    category: () => window.slp.getUrlPathSegment(2),
+    // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/"
+    // (Omit this field to return "none")
+    category: () => window.slp.getUrlPathSegment(2), // "bar"
 
     // Use function expressions to actively watch for value updates
     title: () => document.querySelector('h1').textContent,
 
-    // Omit the "clickUrl" field to return the current URL without parameters
+    // Omit the "clickUrl" field to return the current URL without query parameters or hash
 
-    // No checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
+    // No existence checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
     imageUrl: () => document.querySelector('img').src,
 
     // Example item availability check
@@ -71,8 +73,8 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 
     // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
 
-    // Will return a query parameter, e.g. "http://www.example.com/?productCategory=foo" -> "foo"
-    category: () => window.slp.getUrlQueryParameter('productCategory'),
+    // Will return a URL query parameter, e.g. "http://www.example.com/?productCategory=foo"
+    category: () => window.slp.getUrlQueryParameter('productCategory'), // "foo"
 
     // All values will be .trim()-med by default
     title: () => document.querySelector('h1').textContent,
@@ -103,83 +105,87 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
 }());
 ```
 
-## All methods
+## Configuration (`config`)
 
-### `window.slp.getUrl()`
+You can configure the way the SLP Helper will behave through the `config` object.
 
-Will return the current URL without query parameters and hash, and accepts optional configuration:
+* **`testUrl`** (`RegEx`)
+Pass a regular expression to test agains `location.href`. The SLP Helper won't scrape on fail.
+
+* **`optionalFields`** (`Array`)
+Pass an array of field names (strings) that may scrape empty or undefined. (Doesn't apply to required fields, see below)
+
+* **`watchChanges`** (`Boolean`, default: `false`)
+Set to true to expect multiple value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will force to `true` when `longestViewed` is set)
+
+* **`longestViewed`** (`Boolean`, default: `false`)
+Set to true to simulate a non-existing LemonPI business rule "Longest viewed by user". This functionality is achieved by scraping every second a user is active on the page. This only works when used in conjunction with the "Most viewed by user" business rule in LemonPI Manage.
+
+* **`interval`** (`Integer`, default: `500`)
+The amount of milliseconds of delay between value checks.
+
+* **`debug`** (`Boolean`, default: `false`)
+Set to true to enforce console debugging. Not recommended, put *lemonpi_debug* somewhere in the query string to achieve the same.
+
+## Methods
+
+* **`window.slp.getUrl()`**
+Will return the current URL without query parameters and hash, and accepts optional configuration.
 
 ```javascript
-// Defaults:
+// Example
 window.slp.getUrl({
-  allowedParameters: [],
-  customParameters: {},
-  hash: false,
+  allowedParameters: ['foo', 'bar'],
+  customParameters: { baz: 'qux' },
+  hash: true,
 });
 ```
 
 See examples above for usage.
 
-### `window.slp.getUrlPathSegment()`
-
+* **`window.slp.getUrlPathSegment()`**
 Use this method to get all URL path segments (array), or a certain URL path segment (string). See
 examples above for usage.
 
-### `window.slp.getUrlQueryParameter()`
-
+* **`window.slp.getUrlQueryParameter()`**
 This method will let you grab all URL query parameters (object), or a certain URL query parameter
 (string). See examples above for usage.
 
-### `window.slp.generateHash()`
-
+* **`window.slp.generateHash()`**
 Will return a unique string ([-0-9]) based on the first argument input (may be string, number, array, boolean, or object).
 
-### `window.slp.getBackgroundImageUrl()`
-
+* **`window.slp.getBackgroundImageUrl()`**
 Returns the computed background image URL of a supplied element, or element selector.
 
-### `window.slp.scrape()`
+* **`window.slp.scrape()`**
+Will perform `window.lemonpi.push()` when the output is considered valid.
 
-Will perform `window.lemonpi.push()` when the output is considered valid. Structure:
+## LemonPI field defaults and value types
 
-```javascript
-window.slp.scrape({
-  // Optional
-  config: {
-    // Default settings:
-    debug: /lemonpi_debug/.test(window.top.location.href), // [Boolean]
-    optionalFields: [], // [Array] (containing field name strings)
-    watchChanges: false, // [Boolean]
-    testUrl: undefined, // [RegEx|Undefined]
-    timeout: 500, // [Integer] The amount of milliseconds of delay between value checks
-  },
+### Required
 
-  // LemonPI fields
-  // Required:
-  title: '',
-  imageUrl: '',
-  advertiserId: 0,
-  dynamicInputId: 0,
+* **`title`** (`String`)
+* **`imageUrl`** (`String`)
+* **`advertiserId`** (`Integer`)
+* **`dynamicInputId`** (`Integer`)
 
-  // Required, but with default values
-  id: '', // Returns a unique default hash value based on all field values by default
-  category: '', // Returns "none" by default
-  clickUrl: '', // Returns the current URL without parameters by default
-  available: true, // Returns true by default
-  type: '', // Returns "propSeen" by default
+### Required, but with default values
 
-  // Optional:
-  description: '',
-  logoUrl: '',
-  expiresOn: '',
-  priceNormal: '',
-  priceDiscount: '',
-  stickerText: '',
-  custom1: '',
-  custom2: '',
-  custom3: '',
-  custom4: '',
-}, callback);
-```
+* **`id`** (`String`, default: `"91374653451044"` [unique hash based on all field values])
+* **`category`** (`String`, default: `"none"`)
+* **`clickUrl`** (`String`, default: `"https://..."` [current URL without parameters])
+* **`available`** (`Boolean`, default: `true`)
+* **`type`** (`String`, default: `"propSeen"`, other values: `"propInBasket"`, `"propPurchased"`)
 
-See examples above for usage.
+### Optional
+
+* **`description`** (`String`)
+* **`logoUrl`** (`String`)
+* **`expiresOn`** (`String`)
+* **`priceNormal`** (`String`)
+* **`priceDiscount`** (`String`)
+* **`stickerText`** (`String`)
+* **`custom1`** (`String`)
+* **`custom2`** (`String`)
+* **`custom3`** (`String`)
+* **`custom4`** (`String`)

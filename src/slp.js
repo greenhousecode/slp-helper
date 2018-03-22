@@ -37,7 +37,7 @@ window.lemonpi = window.lemonpi || [];
   const config = {
     debug: /lemonpi_debug/.test(window.location.href),
     optionalFields: [],
-    timeout: 500,
+    interval: 500,
   };
   let result;
   let errors;
@@ -361,7 +361,7 @@ window.lemonpi = window.lemonpi || [];
     // Monitor any changes by calling itself again
     setTimeout(() => {
       scrape(input);
-    }, config.timeout);
+    }, config.interval);
   };
 
   // Disable overwriting when the SLP is loaded multiple times
