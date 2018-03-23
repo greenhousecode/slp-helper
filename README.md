@@ -112,7 +112,7 @@ You can configure the way the SLP Helper will behave through the `config` object
 Pass a regular expression to test agains `location.href`. The SLP Helper won't scrape on fail.
 
 * **`optionalFields`** (`Array`)
-Pass an array of field names (strings) that may scrape empty or undefined. (Doesn't apply to required fields, see below)
+Pass an array of field names (strings) that may scrape empty or undefined. (Only applies to optional fields, see below)
 
 * **`watchChanges`** (`Boolean`, default: `false`)
 Set to true to expect multiple value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will force to `true` when `longestViewed` is set)
@@ -129,18 +129,7 @@ Set to true to enforce console debugging. Not recommended, put *lemonpi_debug* s
 ## Methods
 
 * **`window.slp.getUrl()`**
-Will return the current URL without query parameters and hash, and accepts optional configuration.
-
-```javascript
-// Example
-window.slp.getUrl({
-  allowedParameters: ['foo', 'bar'],
-  customParameters: { baz: 'qux' },
-  hash: true,
-});
-```
-
-See examples above for usage.
+Will return the current URL without query parameters and hash, and accepts optional configuration. See examples above for usage.
 
 * **`window.slp.getUrlPathSegment()`**
 Use this method to get all URL path segments (array), or a certain URL path segment (string). See
