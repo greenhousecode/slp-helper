@@ -121,7 +121,7 @@ Set to true to expect multiple value changes (multiple scrapes) throughout a sin
 Set to true to simulate a non-existing LemonPI business rule "Longest viewed by user". This functionality is achieved by scraping every second a user is active on the page. This only works when used in conjunction with the "Most viewed by user" business rule in LemonPI Manage.
 
 * **`interval`** (`Integer`, default: `500`)
-The amount of milliseconds of delay between value checks. (Will default to `1000` when `longestViewed` is set)
+The amount of milliseconds of delay between value checks. (Will default to `5000` when `longestViewed` is set)
 
 * **`debug`** (`Boolean`, default: `false`)
 Set to true to enforce console debugging. Not recommended, put *lemonpi_debug* somewhere in the query string to achieve the same.

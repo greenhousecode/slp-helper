@@ -274,7 +274,7 @@ window.lemonpi = window.lemonpi || [];
     if (input.config) {
       // Use a longer default interval time when longestViewed is active
       if (input.config.longestViewed) {
-        config.interval = 1000;
+        config.interval = 5000;
       }
 
       Object.assign(config, input.config);
