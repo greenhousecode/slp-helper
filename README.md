@@ -151,7 +151,7 @@ This method will let you grab all URL query parameters (object), or a certain UR
 (string). See examples above for usage.
 
 * **`window.slp.generateHash()`**
-Will return a unique string ([-0-9]) based on the first argument input (may be string, number, array, boolean, or object).
+Will return a unique string ([-0-9]) based on all arguments passed (may be string, number, array, boolean, or object).
 
 * **`window.slp.getBackgroundImageUrl()`**
 Returns the computed background image URL of a supplied element, or element selector.
