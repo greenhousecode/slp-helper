@@ -364,6 +364,11 @@ window.lemonpi = window.lemonpi || [];
             // Stop watching after one successful scrape
             return;
           }
+
+          if (this.input.config.longestViewed) {
+            // Use a longer default interval time when longestViewed is active
+            this.config.interval = 5000;
+          }
         } else if (this.config.debug) {
           console.log('%cSLP%c Scrape unsuccessful:', consoleStyling, 'color:red', this.result);
         }
@@ -378,9 +383,6 @@ window.lemonpi = window.lemonpi || [];
     // Handle initial configuration
     if (this.input.config) {
       if (this.input.config.longestViewed) {
-        // Use a longer default interval time when longestViewed is active
-        this.config.interval = 5000;
-
         // Store cursor position to determine user interaction
         document.addEventListener('mousemove', (event) => {
           this.pointerCoords = [event.pageX, event.pageY];
