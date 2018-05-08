@@ -1,6 +1,6 @@
 {
   "name": "@bluemango/slp-helper",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.",
   "main": "src/slp",
   "scripts": {
