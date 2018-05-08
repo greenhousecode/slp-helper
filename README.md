@@ -115,13 +115,13 @@ Pass a regular expression to test agains `location.href`. The SLP Helper won't s
 Pass an array of field names (strings) that may scrape empty or undefined. (Only applies to optional fields, see below)
 
 * **`watchChanges`** (`Boolean`, default: `false`)
-Set to true to expect multiple value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will force to `true` when `longestViewed` is set)
+Set to true to expect multiple value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will enforce `true` when `longestViewed` is set)
 
 * **`longestViewed`** (`Boolean`, default: `false`)
 Set to true to simulate a non-existing LemonPI business rule "Longest viewed by user". This functionality is achieved by scraping every second a user is active on the page. This only works when used in conjunction with the "Most viewed by user" business rule in LemonPI Manage.
 
 * **`interval`** (`Integer`, default: `500`)
-The amount of milliseconds of delay between value checks. (Will default to `5000` when `longestViewed` is set)
+The amount of milliseconds of delay between value checks. (Will enforce `5000` when `longestViewed` is set)
 
 * **`debug`** (`Boolean`, default: `false`)
 Set to true to enforce console debugging. Not recommended, put *lemonpi_debug* somewhere in the query string to achieve the same.
