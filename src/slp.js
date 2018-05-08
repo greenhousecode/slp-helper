@@ -40,7 +40,7 @@ window.lemonpi = window.lemonpi || [];
     interval: 500,
   };
 
-  // Create a unique hash based on any argument(s) input
+  // Create a unique hash based on any arguments passed
   const generateHash = (...args) => {
     const string = JSON.stringify(args);
     let hash = 0;
@@ -97,8 +97,7 @@ window.lemonpi = window.lemonpi || [];
 
   // Returns the current URL with optional query string parameters and / or hash
   const getUrl = (urlConfig) => {
-    let url =
-      `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    let url = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
 
     if (urlConfig) {
       let paramAdded = false;
