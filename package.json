@@ -1,8 +1,8 @@
 {
-  "name": "@bluemango/slp-helper",
-  "version": "1.7.0",
+  "name": "slp-helper",
+  "version": "1.8.0",
   "description": "This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.",
-  "main": "src/slp",
+  "main": "src/slp.js",
   "scripts": {
     "start": "npm run lint && npm run build",
     "build": "webpack && node postBuild.js",
@@ -10,11 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GreenhouseGroupBV/ch-lemonpi-slp_helper.git"
+    "url": "git+https://github.com/GreenhouseGroupBV/ch-lemonpi-slp_helper.git"
   },
-  "author": "Greenhouse Group",
+  "author": "Rick Stevens <rick.stevens@greenhousegroup.com> (https://www.greenhousegroup.com/)",
   "license": "ISC",
-  "homepage": "https://www.npmjs.com/package/@bluemango/slp-helper",
+  "homepage": "https://www.npmjs.com/package/slp-helper",
   "devDependencies": {
     "babel-loader": "^7.1.1",
     "babel-plugin-array-includes": "^2.0.3",
@@ -29,5 +29,8 @@
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.9.0",
     "webpack": "^3.11.0"
+  },
+  "bugs": {
+    "url": "https://github.com/GreenhouseGroupBV/ch-lemonpi-slp_helper/issues"
   }
 }
