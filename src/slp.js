@@ -79,6 +79,52 @@ window.lemonpi = window.lemonpi || [];
     console.log(`%cSLP%c ${subject}%c ${message}`, consoleStyling, 'color:red;font-weight:bold', 'color:red');
   };
 
+  // Set a cookie using any JSON-friendly data type
+  const setSingleCookie = (key, value) => {
+    const val = typeof value === 'string' ? value : JSON.stringify(value);
+    document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
+  };
+
+  // Set one or more cookies at once
+  const setCookie = (objOrKey, value) => {
+    if (typeof objOrKey === 'object') {
+      const obj = objOrKey;
+      Object.keys(obj).forEach(key => setSingleCookie(key, obj[key]));
+    } else if (value) {
+      const key = objOrKey;
+      setSingleCookie(key, value);
+    }
+  };
+
+  // Set a cookie using any JSON-friendly data type
+  const getSingleCookie = (key) => {
+    const cookie = `; ${document.cookie}`;
+    const parts = cookie.split(`; ${key}=`);
+
+    if (parts.length === 2) {
+      let value = decodeURIComponent(parts.pop().split(';').shift());
+
+      try {
+        value = JSON.parse(value);
+      } catch (_) { } // eslint-disable-line no-empty
+
+      return value;
+    }
+
+    return undefined;
+  };
+
+  // Get one or more cookies at once
+  const getCookie = (arrOrKey) => {
+    if (typeof arrOrKey === 'object') {
+      const arr = arrOrKey;
+      return arr.map(key => getSingleCookie(key));
+    }
+
+    const key = arrOrKey;
+    return getSingleCookie(key);
+  };
+
   // Returns an URL path segment
   const getUrlPathSegment = index => window.location.pathname
     .split('/')
@@ -413,6 +459,8 @@ window.lemonpi = window.lemonpi || [];
     getUrlQueryParameter,
     getUrlPathSegment,
     generateHash,
+    setCookie,
+    getCookie,
     getUrl,
     scrape: (...args) => new SLPHelper(...args),
   };
