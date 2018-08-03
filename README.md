@@ -145,6 +145,12 @@ Will return a unique string ([-0-9]) based on all arguments passed (may be strin
 * **`window.slp.getBackgroundImageUrl()`**
 Returns the computed background image URL of a supplied element, or element selector.
 
+* **`window.slp.setCookie(keyOrObject[, value])`**
+Set a single cookie, or multiple cookies at once using a key-value object. Values can be of any JSON-friendly type (string, number, array, object, boolean, null).
+
+* **`window.slp.getCookie(keyOrArray)`**
+Get a single cookie, or multiple cookies at once using an array of keys. JSON-friendly values will automatically be parsed to their respective types.
+
 * **`window.slp.scrape()`**
 Will perform `window.lemonpi.push()` when the output is considered valid.
 
