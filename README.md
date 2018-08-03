@@ -66,7 +66,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       // Keep watching for value updates, and scrape every time there are changes
       watchChanges: true,
 
-      // Not recommended, use "lemonpi_debug" somewhere in the query string or hash instead
+      // Not recommended, add "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
     },
 
@@ -124,7 +124,7 @@ Set to true to simulate a non-existing LemonPI business rule "Longest viewed by 
 The amount of milliseconds of delay between value checks. (Will enforce `5000` when `longestViewed` is set)
 
 * **`debug`** (`Boolean`, default: `false`)
-Set to true to enforce console debugging. Not recommended, put *lemonpi_debug* somewhere in the query string to achieve the same.
+Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* somewhere in the query string to achieve the same.
 
 ## Methods
 
