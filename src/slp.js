@@ -117,10 +117,9 @@ window.lemonpi = window.lemonpi || [];
     .replace(/^\?/, '')
     .split('&')
     .filter(parameter => parameter)
-    .reduce((parameters, parameter) =>
-      Object.assign(parameters, {
-        [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-      }), {});
+    .reduce((parameters, parameter) => Object.assign(parameters, {
+      [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+    }), {});
 
   // Returns a URL query parameter
   const getUrlQueryParameter = key => getUrlQueryParameters()[key];
