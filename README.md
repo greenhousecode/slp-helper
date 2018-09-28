@@ -89,7 +89,7 @@ watcher, so you don't need to build in existence checks, or wrap timeouts and in
       },
 
       // Allow the hash to be added to the returned URL
-      hash: true,
+      allowHash: true,
     }),
 
     imageUrl: () => document.querySelector('img').src,
@@ -128,30 +128,34 @@ Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* s
 
 ## Methods
 
-* **`window.slp.getUrl()`**
+* **`window.slp.getUrl([Object])`**
 Will return the current URL without query parameters and hash, and accepts optional configuration. See examples above for usage.
 
-* **`window.slp.getUrlPathSegment()`**
-Use this method to get all URL path segments (array), or a certain URL path segment (string). See
-examples above for usage.
+* **`window.slp.getUrlPathSegment(Integer)`**
+Use this method to get a specific URL path segment (String). See examples above for usage.
 
-* **`window.slp.getUrlQueryParameter()`**
-This method will let you grab all URL query parameters (object), or a certain URL query parameter
-(string). See examples above for usage.
+* **`window.slp.getUrlPathSegments()`**
+Use this method to get all URL path segments (Array).
 
-* **`window.slp.generateHash()`**
-Will return a unique string ([-0-9]) based on all arguments passed (may be string, number, array, boolean, or object).
+* **`window.slp.getUrlQueryParameter(String)`**
+This method will let you grab the value of a specific URL query parameter (String). See examples above for usage.
 
-* **`window.slp.getBackgroundImageUrl()`**
+* **`window.slp.getUrlQueryParameters()`**
+This method will let you grab all URL query parameters (Object).
+
+* **`window.slp.generateHash(String|Number|Array|Boolean|Object[, ...[, ...]])`**
+Will return a unique string ([-0-9]) based on all JSON-friendly arguments passed.
+
+* **`window.slp.getBackgroundImageUrl(String)`**
 Returns the computed background image URL of a supplied element, or element selector.
 
-* **`window.slp.setCookie(keyOrObject[, value])`**
-Set a single cookie, or multiple cookies at once using a key-value object. Values can be of any JSON-friendly type (string, number, array, object, boolean, null).
+* **`window.slp.setCookie(String, String|Number|Array|Boolean|Object)`**
+Set a cookie (key, value). Values will be JSON stringified.
 
-* **`window.slp.getCookie(keyOrArray)`**
-Get a single cookie, or multiple cookies at once using an array of keys. JSON-friendly values will automatically be parsed to their respective types.
+* **`window.slp.getCookie(String)`**
+Get a cookie value by its key. Values will be JSON parsed.
 
-* **`window.slp.scrape()`**
+* **`window.slp.scrape(Object)`**
 Will perform `window.lemonpi.push()` when the output is considered valid.
 
 ## LemonPI field defaults and value types

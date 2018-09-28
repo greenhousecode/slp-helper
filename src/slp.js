@@ -79,25 +79,14 @@ window.lemonpi = window.lemonpi || [];
     console.log(`%cSLP%c ${subject}%c ${message}`, consoleStyling, 'color:red;font-weight:bold', 'color:red');
   };
 
-  // Set a cookie using any JSON-friendly data type
-  const setSingleCookie = (key, value) => {
+  // Set a cookie using any JSON-friendly value
+  const setCookie = (key, value) => {
     const val = typeof value === 'string' ? value : JSON.stringify(value);
     document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
   };
 
-  // Set one or more cookies at once
-  const setCookie = (objOrKey, value) => {
-    if (typeof objOrKey === 'object') {
-      const obj = objOrKey;
-      Object.keys(obj).forEach(key => setSingleCookie(key, obj[key]));
-    } else if (value) {
-      const key = objOrKey;
-      setSingleCookie(key, value);
-    }
-  };
-
-  // Set a cookie using any JSON-friendly data type
-  const getSingleCookie = (key) => {
+  // Get a cookie by its key
+  const getCookie = (key) => {
     const cookie = `; ${document.cookie}`;
     const parts = cookie.split(`; ${key}=`);
 
@@ -114,32 +103,26 @@ window.lemonpi = window.lemonpi || [];
     return undefined;
   };
 
-  // Get one or more cookies at once
-  const getCookie = (arrOrKey) => {
-    if (typeof arrOrKey === 'object') {
-      const arr = arrOrKey;
-      return arr.map(key => getSingleCookie(key));
-    }
-
-    const key = arrOrKey;
-    return getSingleCookie(key);
-  };
-
-  // Returns an URL path segment
-  const getUrlPathSegment = index => window.location.pathname
+  // Returns all URL path segments
+  const getUrlPathSegments = () => window.location.pathname
     .split('/')
     .filter(segment => segment)
-    .map(segment => decodeURI(segment))[index];
+    .map(segment => decodeURI(segment));
 
-  // Returns a query parameter
-  const getUrlQueryParameter = key => window.location.search
+  // Returns an URL path segment
+  const getUrlPathSegment = index => getUrlPathSegments()[index];
+
+  // Returns all URL query parameters
+  const getUrlQueryParameters = () => window.location.search
     .replace(/^\?/, '')
     .split('&')
     .filter(parameter => parameter)
-    .reduce((parameters, parameter) =>
-      Object.assign(parameters, {
-        [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
-      }), {})[key];
+    .reduce((parameters, parameter) => Object.assign(parameters, {
+      [decodeURI(parameter.split('=')[0])]: decodeURI(parameter.split('=')[1]),
+    }), {});
+
+  // Returns a URL query parameter
+  const getUrlQueryParameter = key => getUrlQueryParameters()[key];
 
   // Returns the current URL with optional query string parameters and / or hash
   const getUrl = (urlConfig) => {
@@ -172,7 +155,7 @@ window.lemonpi = window.lemonpi || [];
         });
       }
 
-      if (urlConfig.hash) {
+      if (urlConfig.hash || urlConfig.allowHash) {
         url += window.location.hash;
       }
     }
@@ -456,7 +439,9 @@ window.lemonpi = window.lemonpi || [];
   // Disable overwriting when the SLP is loaded multiple times
   window.slp = window.slp || {
     getBackgroundImageUrl,
+    getUrlQueryParameters,
     getUrlQueryParameter,
+    getUrlPathSegments,
     getUrlPathSegment,
     generateHash,
     setCookie,

@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
@@ -8,7 +7,14 @@ module.exports = {
     filename: 'slp.min.js',
   },
   module: {
-    rules: [{ loader: 'babel-loader' }],
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+        },
+      },
+    ],
   },
-  plugins: [new webpack.optimize.UglifyJsPlugin()],
 };
