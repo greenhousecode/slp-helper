@@ -305,6 +305,18 @@ window.lemonpi = window.lemonpi || [];
       this.result = {};
       this.errors = {};
 
+      // Test the URL for admittance
+      if (this.config.testUrl
+        && this.config.testUrl.test
+        && !this.config.testUrl.test(window.location.href)) {
+        this.errors['The URL'] = `doesn't match '${this.config.testUrl.toString()}'`;
+      }
+
+      // Ignore Google Translated pages
+      if (document.querySelector('html[class*="translated-"]')) {
+        this.errors['The page'] = 'has been translated by Google Translate and will be ignored';
+      }
+
       // Add result values for valid fields
       Object.keys(this.input).forEach((fieldName) => {
         if (fieldNames.includes(fieldName)) {
@@ -419,17 +431,6 @@ window.lemonpi = window.lemonpi || [];
 
       // Overwrite and extend default config with user config
       Object.assign(this.config, this.input.config);
-
-      // Test the URL for admittance
-      if (this.config.testUrl
-        && this.config.testUrl.test
-        && !this.config.testUrl.test(window.location.href)) {
-        if (this.config.debug) {
-          logError('The URL', `doesn't match '${this.config.testUrl.toString()}'`);
-        }
-
-        return;
-      }
     }
 
     // Init
