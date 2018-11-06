@@ -1,12 +1,11 @@
 # SLP Helper
 
-This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value
-watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.
+This library gives you shortcuts to develop Smart LemonPI Pixels through `window.slp`. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.
 
 ## Basic example (ES6)
 
 ```javascript
-// Recommended: wrap an IIFE around your code to isolate it from the target website
+// Recommended: wrap an IIFE around your code to isolate it from the client website
 (function () {
   const advertiserId = 0;
   const dynamicInputId = 0;
@@ -167,13 +166,13 @@ Will perform `window.lemonpi.push()` when the output is considered valid.
 * **`advertiserId`** (`Integer`)
 * **`dynamicInputId`** (`Integer`)
 
-### Required, but with default values
+### Required, with default values
 
-* **`id`** (`String`, default: `"91374653451044"` [unique hash based on all field values])
-* **`category`** (`String`, default: `"none"`)
-* **`clickUrl`** (`String`, default: `"https://..."` [current URL without parameters])
+* **`id`** (`String`, default: `"91374653451044"` [unique hash based on all field values] [values will be converted to `[a-z0-9-]`])
+* **`category`** (`String`, default: `"none"` [values will be converted to `[a-z0-9-]`])
+* **`clickUrl`** (`String`, default: `"https://..."` [current URL without parameters or hash])
 * **`available`** (`Boolean`, default: `true`)
-* **`type`** (`String`, default: `"propSeen"`, other values: `"propInBasket"`, `"propPurchased"`)
+* **`type`** (`String`, default: `"propSeen"`, other allowed values: `"propInBasket"`, `"propPurchased"`)
 
 ### Optional
 
