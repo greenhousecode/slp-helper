@@ -114,18 +114,18 @@ Pass a regular expression to test agains `location.href`. The SLP Helper won't s
 Pass an array of field names (strings) that may scrape empty or undefined. (Only applies to optional fields, see below)
 
 * **`watchChanges`** (`Boolean`, default: `false`)
-Set to true to expect multiple value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will enforce `true` when `longestViewed` is set)
+Set to true to expect value changes (multiple scrapes) throughout a single page visit. User input and/or asynchronous calls are the most common causes. (Will enforce `true` when `longestViewed` is set)
 
 * **`longestViewed`** (`Boolean`, default: `false`)
-Set to true to simulate a non-existing LemonPI business rule "Longest viewed by user". This functionality is achieved by scraping every second a user is active on the page. This only works when used in conjunction with the "Most viewed by user" business rule in LemonPI Manage.
+Set to true to simulate a non-existing LemonPI business rule **Longest viewed by user**. This functionality is achieved by scraping every second a user is active on the page. This only works when used in conjunction with the **Most viewed by user** business rule in LemonPI Manage.
 
 * **`interval`** (`Integer`, default: `500`)
-The amount of milliseconds of delay between value checks. (Will enforce `5000` when `longestViewed` is set)
+The amount of milliseconds of delay between value checks. (Will enforce `5000` when `longestViewed` is `true`)
 
 * **`debug`** (`Boolean`, default: `false`)
-Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* somewhere in the query string to achieve the same.
+Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* somewhere in the query string instead.
 
-## Methods
+## Public methods
 
 * **`window.slp.getUrl([Object])`**
 Will return the current URL without query parameters and hash, and accepts optional configuration. See examples above for usage.
@@ -143,7 +143,7 @@ This method will let you grab the value of a specific URL query parameter (Strin
 This method will let you grab all URL query parameters (Object).
 
 * **`window.slp.generateHash(String|Number|Array|Boolean|Object[, ...[, ...]])`**
-Will return a unique string ([-0-9]) based on all JSON-friendly arguments passed.
+Will return a unique string (`[0-9-]`) based on all JSON-friendly arguments passed.
 
 * **`window.slp.getBackgroundImageUrl(String)`**
 Returns the computed background image URL of a supplied element, or element selector.
@@ -166,7 +166,7 @@ Will perform `window.lemonpi.push()` when the output is considered valid.
 * **`advertiserId`** (`Integer`)
 * **`dynamicInputId`** (`Integer`)
 
-### Required, with default values
+#### Default values
 
 * **`id`** (`String`, default: `"91374653451044"` [unique hash based on all field values] [values will be converted to `[a-z0-9-]`])
 * **`category`** (`String`, default: `"none"` [values will be converted to `[a-z0-9-]`])
