@@ -1,6 +1,6 @@
 {
   "name": "slp-helper",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.",
   "main": "dist/slp.min.js",
   "files": [
@@ -16,18 +16,16 @@
   "license": "MIT",
   "homepage": "https://www.npmjs.com/package/slp-helper",
   "devDependencies": {
-    "@babel/core": "^7.1.0",
-    "@babel/preset-env": "^7.1.0",
-    "babel-loader": "^8.0.2",
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-loader": "^8.0.5",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-transform-object-assign": "^6.22.0",
-    "eslint": "^5.6.0",
+    "eslint": "^5.15.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "webpack": "^4.19.1",
-    "webpack-cli": "^3.1.0"
+    "eslint-plugin-import": "^2.16.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3"
   },
-  "bugs": {
-    "url": "https://github.com/GreenhouseGroupBV/ch-lemonpi-slp_helper/issues"
-  }
+  "bugs": "https://github.com/greenhousecode/slp-helper/issues"
 }
