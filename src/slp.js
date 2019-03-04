@@ -399,10 +399,10 @@ window.lemonpi = window.lemonpi || [];
         if (!Object.keys(this.errors).length) {
           if (typeof this.config.beforePush === 'function') {
             // Execute an optional lifecycle hook
-            this.config.beforePush(this.result, result => this.push(result));
+            this.config.beforePush(this.result, this.push);
           } else if (typeof this.callback === 'function') {
             // Legacy support
-            this.callback(this.result, result => this.push(result));
+            this.callback(this.result);
           } else {
             this.push(this.result);
           }
