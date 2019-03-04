@@ -299,6 +299,14 @@ window.lemonpi = window.lemonpi || [];
       return value;
     };
 
+    this.push = (result) => {
+      if (this.config.debug) {
+        console.log('%cSLP%c Scrape successful:', consoleStyling, 'color:green', result);
+      }
+
+      window.lemonpi.push(result);
+    };
+
     // Main scrape action
     this.scrape = () => {
       // Wipe any previous state
@@ -389,15 +397,14 @@ window.lemonpi = window.lemonpi || [];
         }
 
         if (!Object.keys(this.errors).length) {
-          if (this.config.debug) {
-            console.log('%cSLP%c Scrape successful:', consoleStyling, 'color:green', this.result);
-          }
-
-          if (this.callback) {
-            // Execute an optional callback function, instead of pushing straight to LemonPI
-            this.callback(this.result);
+          if (typeof this.config.beforePush === 'function') {
+            // Execute an optional lifecycle hook
+            this.config.beforePush(this.result, result => this.push(result));
+          } else if (typeof this.callback === 'function') {
+            // Legacy support
+            this.callback(this.result, result => this.push(result));
           } else {
-            window.lemonpi.push(this.result);
+            this.push(this.result);
           }
 
           if (!this.config.watchChanges && !this.config.longestViewed) {

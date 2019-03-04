@@ -49,15 +49,9 @@ This library gives you shortcuts to develop Smart LemonPI Pixels through `window
   const advertiserId = 0;
   const dynamicInputId = 0;
 
-  // Optional custom callback
-  const callback = (result) => {
-    // Do something with 'result' here, before dispatching it through lemonpi.push
-    window.lemonpi.push(result);
-  };
-
   window.slp.scrape({
     config: {
-      testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
+      testUrl: /www\.example\.com/,
 
       // Empty fields throw errors by default, these will be ignored
       optionalFields: ['logoUrl'],
@@ -67,6 +61,15 @@ This library gives you shortcuts to develop Smart LemonPI Pixels through `window
 
       // Not recommended, add "lemonpi_debug" somewhere in the query string or hash instead
       debug: true,
+
+      // Optional hook before calling window.lemonpi.push
+      beforePush: (result, done) => {
+        // Do something with 'result' here, before dispatching it asynchronously through done()
+        setTimeout(() => {
+          result.custom4 = 'Example';
+          done(result);
+        }, 1000);
+      };
     },
 
     // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
@@ -99,7 +102,7 @@ This library gives you shortcuts to develop Smart LemonPI Pixels through `window
     // Constants
     advertiserId,
     dynamicInputId,
-  }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
+  });
 }());
 ```
 
@@ -124,6 +127,9 @@ The amount of milliseconds of delay between value checks. (Will enforce `5000` w
 
 * **`debug`** (`Boolean`, default: `false`)
 Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* somewhere in the query string instead.
+
+* **`beforePush`** (`Function`)
+Optional lifecycle hook to (asynchronously) alter the result object, before pushing it to LemonPI. Takes in **`result`** (`Object`) and **`done`** (`Function`) as arguments.
 
 ## Public methods
 
