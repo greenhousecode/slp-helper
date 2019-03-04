@@ -2,18 +2,18 @@
   "name": "slp-helper",
   "version": "1.10.0",
   "description": "This library gives you shortcuts to develop Smart LemonPI Pixels. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.",
-  "main": "src/slp.js",
+  "main": "dist/slp.min.js",
+  "files": [
+    "/dist/**/*.js"
+  ],
   "scripts": {
-    "start": "npm run lint && npm run build",
+    "lint": "eslint src/**",
     "build": "webpack --mode=production && node postBuild.js",
-    "lint": "eslint src/**/*.js"
+    "prepare": "npm run lint && npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/GreenhouseGroupBV/ch-lemonpi-slp_helper.git"
-  },
+  "repository": "github:greenhousecode/slp-helper",
   "author": "Rick Stevens <rick.stevens@greenhousegroup.com> (https://www.greenhousegroup.com/)",
-  "license": "ISC",
+  "license": "MIT",
   "homepage": "https://www.npmjs.com/package/slp-helper",
   "devDependencies": {
     "@babel/core": "^7.1.0",
