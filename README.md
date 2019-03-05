@@ -1,6 +1,6 @@
 # SLP Helper
 
-This library gives you shortcuts to develop Smart LemonPI Pixels through `window.slp`. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.
+> This library will enable you to develop Smart LemonPI Pixels faster and more compact, by providing and supporting the most used scraper functionalities through `window.slp`.
 
 ## Basic example (ES6)
 
@@ -19,7 +19,7 @@ window.slp.scrape({
   // (Omit this field to return "none")
   category: () => window.slp.getUrlPathSegment(2), // "bar"
 
-  // Use function expressions to actively watch for value updates
+  // Use function expressions to actively watch for value updates, and prevent any client-side errors
   title: () => document.querySelector('h1').textContent,
 
   // Omit the "clickUrl" field to return the current URL without query parameters or hash
