@@ -1,106 +1,98 @@
 # SLP Helper
 
-This library gives you shortcuts to develop Smart LemonPI Pixels through `window.slp`. It also acts as an active value watcher, so you don't need to build in existence checks, or wrap timeouts and intervals.
+> This library will enable you to develop Smart LemonPI Pixels faster and more compact, by providing and supporting the most used scraper functionalities through `window.slp`.
 
 ## Basic example (ES6)
 
 ```javascript
-// Recommended: wrap an IIFE around your code to isolate it from the client website
-(function () {
-  const advertiserId = 0;
-  const dynamicInputId = 0;
+window.slp.scrape({
+  // Optional (but recommended) configuration
+  config: {
+    // Whitelist specific URLs using RegEx
+    testUrl: /www\.example\.com/,
+  },
 
-  window.slp.scrape({
-    // Optional (but recommended) configuration
-    config: {
-      // Whitelist specific URLs using RegEx
-      testUrl: /www\.example\.com/,
-    },
+  // Data layer example
+  id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
 
-    // Data layer example
-    id: () => window.dataLayer.filter(entry => entry.sku).pop().sku,
+  // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/"
+  // (Omit this field to return "none")
+  category: () => window.slp.getUrlPathSegment(2), // "bar"
 
-    // Will return the 3rd URL path segment, e.g. "http://www.example.com/test/foo/bar/"
-    // (Omit this field to return "none")
-    category: () => window.slp.getUrlPathSegment(2), // "bar"
+  // Use function expressions to actively watch for value updates, and prevent any client-side errors
+  title: () => document.querySelector('h1').textContent,
 
-    // Use function expressions to actively watch for value updates
-    title: () => document.querySelector('h1').textContent,
+  // Omit the "clickUrl" field to return the current URL without query parameters or hash
 
-    // Omit the "clickUrl" field to return the current URL without query parameters or hash
+  // No DOM existence checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
+  imageUrl: () => document.querySelector('img').src,
 
-    // No DOM existence checks needed, SLP Helper will re-attempt silently until a non-empty value is returned
-    imageUrl: () => document.querySelector('img').src,
+  // Example item availability check
+  available: () => !!document.querySelector('.in-stock'),
 
-    // Example item availability check
-    available: () => !!document.querySelector('.in-stock'),
-
-    // Constants
-    advertiserId,
-    dynamicInputId,
-  });
-}());
+  // Constants, update these to your settings
+  advertiserId: 0,
+  dynamicInputId: 0,
+});
 ```
 
 ## Advanced example (ES6)
 
 ```javascript
-(function () {
-  const advertiserId = 0;
-  const dynamicInputId = 0;
+window.slp.scrape({
+  config: {
+    testUrl: /www\.example\.com/,
 
-  // Optional custom callback
-  const callback = (result) => {
-    // Do something with 'result' here, before dispatching it through lemonpi.push
-    window.lemonpi.push(result);
-  };
+    // Empty fields throw errors by default, these will be ignored
+    optionalFields: ['logoUrl'],
 
-  window.slp.scrape({
-    config: {
-      testUrl: /www\.example\.com\/\w+\/\w+\/\w+/,
+    // Keep watching for value updates, and scrape every time there are changes
+    watchChanges: true,
 
-      // Empty fields throw errors by default, these will be ignored
-      optionalFields: ['logoUrl'],
+    // Not recommended, add "lemonpi_debug" somewhere in the query string or hash instead
+    debug: true,
 
-      // Keep watching for value updates, and scrape every time there are changes
-      watchChanges: true,
+    // Optional hook before calling window.lemonpi.push
+    beforePush: (result, done) => {
+      // Do something with 'result' here, before dispatching it asynchronously through done()
+      setTimeout(() => {
+        result.custom4 = 'Example';
+        done(result);
+      }, 1000);
+    };
+  },
 
-      // Not recommended, add "lemonpi_debug" somewhere in the query string or hash instead
-      debug: true,
+  // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
+
+  // Will return a URL query parameter, e.g. "http://www.example.com/?productCategory=foo"
+  category: () => window.slp.getUrlQueryParameter('productCategory'), // "foo"
+
+  // All values will be .trim()-med by default
+  title: () => document.querySelector('h1').textContent,
+
+  // Advanced usage of window.slp.getUrl()
+  clickUrl: () => window.slp.getUrl({
+    // Allow specified URL paramters to be added to the returned URL
+    allowedParameters: ['productColor', 'productCategory'],
+
+    // Add custom parameters to the URL
+    customParameters: {
+      foo: 'bar',
     },
 
-    // Omit the 'id' field if you want to auto-generate a unique hash based on all values below
+    // Allow the hash to be added to the returned URL
+    allowHash: true,
+  }),
 
-    // Will return a URL query parameter, e.g. "http://www.example.com/?productCategory=foo"
-    category: () => window.slp.getUrlQueryParameter('productCategory'), // "foo"
+  imageUrl: () => document.querySelector('img').src,
 
-    // All values will be .trim()-med by default
-    title: () => document.querySelector('h1').textContent,
+  // Defined as optional above, will continue to scrape without its existence
+  logoUrl: () => document.querySelector('img.logo').src,
 
-    // Advanced usage of window.slp.getUrl()
-    clickUrl: () => window.slp.getUrl({
-      // Allow specified URL paramters to be added to the returned URL
-      allowedParameters: ['productColor', 'productCategory'],
-
-      // Add custom parameters to the URL
-      customParameters: {
-        foo: 'bar',
-      },
-
-      // Allow the hash to be added to the returned URL
-      allowHash: true,
-    }),
-
-    imageUrl: () => document.querySelector('img').src,
-
-    // Defined as optional above, will continue to scrape without its existence
-    logoUrl: () => document.querySelector('img.logo').src,
-
-    // Constants
-    advertiserId,
-    dynamicInputId,
-  }, callback); // Optional: calls a function with the result object, instead of pushing to LemonPI
-}());
+  // Constants
+  advertiserId: 0,
+  dynamicInputId: 0,
+});
 ```
 
 ## Configuration (`config`)
@@ -124,6 +116,9 @@ The amount of milliseconds of delay between value checks. (Will enforce `5000` w
 
 * **`debug`** (`Boolean`, default: `false`)
 Set to true to enforce console debugging. Not recommended, add *lemonpi_debug* somewhere in the query string instead.
+
+* **`beforePush`** (`Function`)
+Optional lifecycle hook to (asynchronously) alter the result object, before pushing it to LemonPI. Takes in **`result`** (`Object`) and **`done`** (`Function`) as arguments.
 
 ## Public methods
 
